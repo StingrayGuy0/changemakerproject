@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Teacher Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        background: radial-gradient(circle at center, #0f172a, #020617);
+        font-family: 'Orbitron', sans-serif;
+        text-align: center;
+        color: aliceblue;
+        margin: 0;
+        padding: 2rem;
+    }
+    h1 { color: #38bdf8; text-shadow: 0 0 20px #38bdf8, 0 0 40px #0ea5e9; }
+    .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid #38bdf8;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 1rem auto;
+        max-width: 500px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 20px rgba(56,189,248,0.6);
+    }
+    input, button, select {
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+        border-radius: 0.5rem;
+        border: none;
+        width: 90%;
+    }
+    button {
+        background: #38bdf8;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px #38bdf8, 0 0 30px #0ea5e9;
+    }
+</style>
+</head>
+<body>
+<h1>Teacher Dashboard</h1>
+
+<div class="card">
+    <h2>Create Task</h2>
+    <input type="text" id="taskTitle" placeholder="Task Title">
+    <input type="number" id="taskXP" placeholder="XP Value">
+    
+    <select id="studentSelect" multiple size="5"></select>
+    
+    <button onclick="createTask()">Create Task</button>
+    <p id="status"></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCOAHU1cXBuW3PgyXtdLWGkZ2ayAKfCYBc",
+    authDomain: "changemaker-fa1fd.firebaseapp.com",
+    projectId: "changemaker-fa1fd",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const statusEl = document.getElementById("status");
+const studentSelect = document.getElementById("studentSelect");
+
+// Redirect if not logged in (not working help me)
+onAuthStateChanged(auth, (user) => {
+    if (!user) window.location.href = "login.html";
+});
+
+// loading students 
+async function loadStudents() {
+    const snap = await getDocs(collection(db, "users"));
+    studentSelect.innerHTML = ""; 
+    snap.forEach(docSnap => {
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = docSnap.data().role === "student" ? docSnap.data().email || docSnap.id : "";
+        studentSelect.appendChild(option);
+    });
+}
+
+// Task creation ogogo
+async function createTask() {
+    const title = document.getElementById("taskTitle").value.trim();
+    const xp = parseInt(document.getElementById("taskXP").value);
+    const selectedOptions = Array.from(studentSelect.selectedOptions);
+    const studentUIDs = selectedOptions.map(opt => opt.value);
+
+    if (!title || !xp || studentUIDs.length === 0) {
+        statusEl.textContent = "Please fill all fields and select at least one student.";
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "tasks"), {
+            title,
+            xp,
+            assignedTo: studentUIDs, // array of uids
+            completedBy: []
+        });
+        statusEl.textContent = `Task "${title}" assigned to ${studentUIDs.length} student(s)!`;
+        document.getElementById("taskTitle").value = "";
+        document.getElementById("taskXP").value = "";
+        studentSelect.selectedIndex = -1;
+    } catch (err) {
+        statusEl.textContent = "Error creating task: " + err.message;
+    }
+}
+
+window.createTask = createTask;
+loadStudents();
+</script>
+</body>
+</html>

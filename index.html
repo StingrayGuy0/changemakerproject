@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>changemakers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at center, #0f172a, #020617);
+  font-family: 'Orbitron', sans-serif;
+  overflow: hidden;
+}
+
+.wrapper {
+  position: relative;
+  width: 340px;
+  overflow: visible;
+}
+
+.card {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 2rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid #38bdf8;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 0 35px rgba(56,189,248,0.6);
+  color: aliceblue;
+  text-align: center;
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
+  position: absolute;
+  top: -200px;
+  left: -40px;
+}
+
+.card.hidden {
+  opacity: 0;
+  transform: scale(0.95);
+  border: 50000px #38bdf8;
+  pointer-events: none;
+}
+
+.card.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+h2 {
+  color: #38bdf8;
+  margin-bottom: 1rem;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid #38bdf8;
+  background: rgba(0,0,0,0.35);
+  color: white;
+  font-weight: bold;
+  outline: none;
+}
+
+input:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 12px #38bdf8;
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  background: #38bdf8;
+  color: black;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px #38bdf8, 0 0 30px #0ea5e9;
+}
+
+.switch {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #002a32;
+  cursor: pointer;
+  background: #9eedffa7;
+  border: 2px solid #38bdf8;
+  border-radius : 0.5rem;
+}
+
+.error {
+  color: #f87171;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="card visible" id="studentCard">
+    <h2 id="studentTitle">Student Login</h2>
+    <form id="studentForm">
+      <input type="email" id="studentEmail" placeholder="Email" required>
+      <input type="password" id="studentPassword" placeholder="Password" required>
+      <button type="submit" id="studentBtn">Login</button>
+    </form>
+    <div class="switch" id="studentSwitch">Switch to Teacher</div>
+    <div class="switch" id="studentToggleSignUp">Sign Up</div>
+    <div class="error" id="studentError"></div>
+  </div>
+
+  <div class="card hidden" id="teacherCard">
+    <h2 id="teacherTitle">Teacher Login</h2>
+    <form id="teacherForm">
+      <input type="email" id="teacherEmail" placeholder="Email" required>
+      <input type="password" id="teacherPassword" placeholder="Password" required>
+      <button type="submit" id="teacherBtn">Login</button>
+    </form>
+    <div class="switch" id="teacherSwitch">Switch to Student</div>
+    <div class="switch" id="teacherToggleSignUp">Sign Up</div>
+    <div class="error" id="teacherError"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOAHU1cXBuW3PgyXtdLWGkZ2ayAKfCYBc",
+  authDomain: "changemaker-fa1fd.firebaseapp.com",
+  projectId: "changemaker-fa1fd",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let studentSignUp = false;
+let teacherSignUp = false;
+
+const studentCard = document.getElementById("studentCard");
+const teacherCard = document.getElementById("teacherCard");
+//I wanna cry this is taking too long
+//I mean it would be easier if someone just told me what the assignment was earlier
+//but nooooooooo they have to procrastinate
+//im pretty much the only person in the group doing anything
+//imagine being me
+//  cards
+document.getElementById("studentSwitch").onclick = () => {
+  studentCard.classList.replace("visible", "hidden");
+  teacherCard.classList.replace("hidden", "visible");
+};
+
+document.getElementById("teacherSwitch").onclick = () => {
+  teacherCard.classList.replace("visible", "hidden");
+  studentCard.classList.replace("hidden", "visible");
+};
+
+// sign up mode S
+const studentTitle = document.getElementById("studentTitle");
+const studentToggleSignUp = document.getElementById("studentToggleSignUp");
+const studentBtn = document.getElementById("studentBtn");
+
+studentToggleSignUp.onclick = () => {
+  studentSignUp = !studentSignUp;
+  if (studentSignUp) {
+    studentTitle.textContent = "Student Sign Up";
+    studentBtn.textContent = "Sign Up";
+    studentToggleSignUp.textContent = "Login";
+  } else {
+    studentTitle.textContent = "Student Login";
+    studentBtn.textContent = "Login";
+    studentToggleSignUp.textContent = "Sign Up";
+  }
+};
+
+// toggle sing up mode T
+const teacherTitle = document.getElementById("teacherTitle");
+const teacherToggleSignUp = document.getElementById("teacherToggleSignUp");
+const teacherBtn = document.getElementById("teacherBtn");
+
+teacherToggleSignUp.onclick = () => {
+  teacherSignUp = !teacherSignUp;
+  if (teacherSignUp) {
+    teacherTitle.textContent = "Teacher Sign Up";
+    teacherBtn.textContent = "Sign Up";
+    teacherToggleSignUp.textContent = "Login";
+  } else {
+    teacherTitle.textContent = "Teacher Login";
+    teacherBtn.textContent = "Login";
+    teacherToggleSignUp.textContent = "Sign Up";
+  }
+};
+
+// student thing
+document.getElementById("studentForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = document.getElementById("studentEmail").value;
+  const password = document.getElementById("studentPassword").value;
+  const studentError = document.getElementById("studentError");
+  studentError.textContent = "";
+
+  try {
+    if (studentSignUp) {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", userCred.user.uid), { role: "student", xp: 0, level: 1, streak: 0 });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+    window.location.href = "/app";
+  } catch (err) {
+    studentError.textContent = err.message;
+  }
+});
+
+// teacher thing
+document.getElementById("teacherForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = document.getElementById("teacherEmail").value;
+  const password = document.getElementById("teacherPassword").value;
+  const teacherError = document.getElementById("teacherError");
+  teacherError.textContent = "";
+
+  try {
+    if (teacherSignUp) {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", userCred.user.uid), { role: "teacher" });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+    window.location.href = "/teacher";
+  } catch (err) {
+    teacherError.textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>
+

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chore Rewards</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        background: radial-gradient(circle at center, #0f172a, #020617);
+        font-family: 'Orbitron', sans-serif;
+        text-align: center;
+        color: aliceblue;
+        margin: 0;
+        padding: 2rem;
+    }
+    h1 { color: #38bdf8; text-shadow: 0 0 20px #38bdf8, 0 0 40px #0ea5e9; }
+    .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid #38bdf8;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 1rem auto;
+        max-width: 500px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 20px rgba(56,189,248,0.6);
+        text-align: left;
+    }
+    .task {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-bottom: 1px solid rgba(56,189,248,0.3);
+    }
+    .task.completed { text-decoration: line-through; opacity: 0.7; }
+    button {
+        background: #38bdf8;
+        border: none;
+        color: black;
+        font-weight: bold;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover { transform: scale(1.05); box-shadow: 0 0 10px #38bdf8, 0 0 20px #0ea5e9; }
+    .section-title { color: #0ea5e9; text-shadow: 0 0 10px #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; }
+    .progress-bar { background: rgba(255,255,255,0.1); border: 1px solid #38bdf8; border-radius: 9999px; height: 20px; margin-top: 0.5rem; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #0ea5e9); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px #38bdf8; }
+    .xp { color: #38bdf8; margin-top: 0.5rem; font-size: 1.2rem; }
+    .level { color: #4ade80; margin-top: 0.25rem; font-size: 1rem; }
+    .streak { color: gold; margin-top: 0.25rem; font-size: 1rem; text-shadow: 0 0 10px gold; }
+    .badges { margin-top: 0.5rem; }
+    .badge { display: inline-block; background: #0ea5e9; color: black; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.8rem; margin: 0.1rem; box-shadow: 0 0 5px #38bdf8; }
+</style>
+</head>
+<body>
+<h1>Chore Rewards</h1>
+
+<div class="card">
+    <h2 class="section-title">Progress</h2>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="xp" id="xp">XP: 0</div>
+    <div class="level" id="level">Level: 1</div>
+    <div class="streak" id="streak">Streak: 0</div>
+    <div class="badges" id="badges"></div>
+</div>
+
+<div class="card">
+    <h2 class="section-title">Incomplete Tasks</h2>
+    <div id="incompleteTasks"></div>
+</div>
+
+<div class="card">
+    <h2 class="section-title">Completed Tasks</h2>
+    <div id="completedTasks"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, updateDoc, doc, setDoc, getDoc } 
+    from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCOAHU1cXBuW3PgyXtdLWGkZ2ayAKfCYBc",
+    authDomain: "changemaker-fa1fd.firebaseapp.com",
+    projectId: "changemaker-fa1fd",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const incompleteEl = document.getElementById("incompleteTasks");
+const completedEl = document.getElementById("completedTasks");
+const xpEl = document.getElementById("xp");
+const levelEl = document.getElementById("level");
+const streakEl = document.getElementById("streak");
+const progressEl = document.getElementById("progress");
+const badgesEl = document.getElementById("badges");
+
+let uid;
+let xp = 0;
+let level = 1;
+let streak = 0;
+let lastCompleted = null;
+const xpPerLevel = 100;
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "login.html"; return; }
+    uid = user.uid;
+
+    const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        const data = userSnap.data();
+        xp = data.xp || 0;
+        level = data.level || 1;
+        streak = data.streak || 0;
+        lastCompleted = data.lastCompleted ? new Date(data.lastCompleted.seconds * 1000) : null;
+    } else {
+        await setDoc(userRef, { xp:0, level:1, streak:0, lastCompleted:null });
+    }
+
+    updateProgress();
+    loadTasks();
+});
+
+// loading tusks
+async function loadTasks() {
+    incompleteEl.innerHTML = "";
+    completedEl.innerHTML = "";
+
+    const q = query(collection(db, "tasks"), where("assignedTo", "array-contains", uid));
+    const snap = await getDocs(q);
+
+    snap.forEach(docSnap => {
+        const task = docSnap.data();
+        const taskEl = document.createElement("div");
+        taskEl.className = "task";
+        taskEl.textContent = `${task.title} - ${task.xp} XP`;
+
+        const btn = document.createElement("button");
+        btn.textContent = task.completedBy.includes(uid) ? "✅" : "Complete";
+        btn.onclick = () => completeTask(docSnap.id, task);
+
+        if (task.completedBy.includes(uid)) {
+            taskEl.classList.add("completed");
+            completedEl.appendChild(taskEl);
+        } else {
+            taskEl.appendChild(btn);
+            incompleteEl.appendChild(taskEl);
+        }
+    });
+}
+
+// Complete task and handle XP, level, streak
+async function completeTask(taskId, task) {
+    const today = new Date();
+    const lastDay = lastCompleted ? new Date(lastCompleted) : null;
+    const diffDays = lastDay ? Math.floor((today - lastDay)/86400000) : null;
+
+    if (!task.completedBy.includes(uid)) {
+        task.completedBy.push(uid);
+        const taskRef = doc(db, "tasks", taskId);
+        await updateDoc(taskRef, { completedBy: task.completedBy });
+
+        //  streak
+        if (!lastCompleted || diffDays === 1) { streak += 1; }
+        else if (diffDays > 1) { streak = 1; }
+
+        lastCompleted = today;
+
+        //  XP and level
+        xp += task.xp;
+        if (xp >= level * xpPerLevel) { level += 1; }
+
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, { xp, level, streak, lastCompleted });
+
+        updateProgress();
+        loadTasks();
+    }
+}
+
+function updateProgress() {
+    xpEl.textContent = "XP: " + xp;
+    levelEl.textContent = "Level: " + level;
+    streakEl.textContent = "Streak: " + streak;
+
+    progressEl.style.width = (xp % xpPerLevel) + "%";
+
+    // Update badges 
+    badgesEl.innerHTML = "";
+    for (let i = 1; i <= 10; i++) {
+        if (streak >= i) {
+            const badge = document.createElement("span");
+            badge.className = "badge";
+            badge.textContent = `🔥 ${i}-Day Streak`;
+            badgesEl.appendChild(badge);
+        }
+    }
+}
+
+window.completeTask = completeTask;
+</script>
+</body>
+</html>
