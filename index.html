@@ -228,7 +228,7 @@ document.getElementById("studentForm").addEventListener("submit", async e => {
     } else {
       await signInWithEmailAndPassword(auth, email, password);
     }
-    window.location.href = "/app";
+    window.location.href = "app";
   } catch (err) {
     studentError.textContent = err.message;
   }
