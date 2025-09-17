@@ -249,7 +249,7 @@ document.getElementById("teacherForm").addEventListener("submit", async e => {
     } else {
       await signInWithEmailAndPassword(auth, email, password);
     }
-    window.location.href = "/teacher";
+    window.location.href = "teacher";
   } catch (err) {
     teacherError.textContent = err.message;
   }
