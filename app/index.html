@@ -2,111 +2,272 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Chore Rewards</title>
+<title>Chore Rewards — Upgrade Points Edition</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+    :root {
+        --accent1: #38bdf8;
+        --accent2: #0ea5e9;
+        --bg: #0f172a;
+        --up-color: #c084fc;
+    }
+
     body {
-        background: radial-gradient(circle at center, #0f172a, #020617);
+        background: radial-gradient(circle at center, var(--bg), #020617);
         font-family: 'Orbitron', sans-serif;
         text-align: center;
         color: aliceblue;
         margin: 0;
         padding: 2rem;
+        min-height: 100vh;
     }
-    h1 { color: #38bdf8; text-shadow: 0 0 20px #38bdf8, 0 0 40px #0ea5e9; }
+
+    h1 { color: var(--accent1); text-shadow: 0 0 20px var(--accent1), 0 0 40px var(--accent2); margin-bottom: 1rem; }
+
+    /* Layout */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
     .card {
         background: rgba(255,255,255,0.05);
-        border: 1px solid #38bdf8;
+        border: 1px solid var(--accent1);
         border-radius: 1rem;
-        padding: 1.5rem;
-        margin: 1rem auto;
-        max-width: 500px;
+        padding: 1rem;
         backdrop-filter: blur(10px);
         box-shadow: 0 0 20px rgba(56,189,248,0.6);
         text-align: left;
+        position: relative;
     }
+
     .task {
+        position: relative; /* for float text */
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 0.5rem;
         padding: 0.25rem 0.5rem;
-        border-bottom: 1px solid rgba(56,189,248,0.3);
+        border-radius: 0.6rem;
+        border-left: 3px solid transparent;
     }
-    .task.completed { text-decoration: line-through; opacity: 0.7; }
+    .task[data-status="incomplete"] { background: rgba(56,189,248,0.03); border-left-color: rgba(56,189,248,0.4); }
+    .task.completed { text-decoration: line-through; opacity: 0.7; background: rgba(0,0,0,0.2); }
+
+    .task .title { font-weight: bold; color: white; }
+    .task .meta { font-size: 0.9rem; color: #cfeffd; }
+
     button {
-        background: #38bdf8;
+        background: var(--accent1);
         border: none;
         color: black;
         font-weight: bold;
         padding: 0.25rem 0.75rem;
         border-radius: 0.5rem;
         cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
-    button:hover { transform: scale(1.05); box-shadow: 0 0 10px #38bdf8, 0 0 20px #0ea5e9; }
-    .section-title { color: #0ea5e9; text-shadow: 0 0 10px #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; }
-    .progress-bar { background: rgba(255,255,255,0.1); border: 1px solid #38bdf8; border-radius: 9999px; height: 20px; margin-top: 0.5rem; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #0ea5e9); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px #38bdf8; }
-    .xp { color: #38bdf8; margin-top: 0.5rem; font-size: 1.2rem; }
+    button:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+
+    .section-title { color: var(--accent2); text-shadow: 0 0 10px var(--accent1); margin-top: 0; margin-bottom: 0.5rem; }
+    .progress-bar { background: rgba(255,255,255,0.06); border: 1px solid var(--accent1); border-radius: 9999px; height: 18px; margin-top: 0.5rem; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent1), var(--accent2)); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px var(--accent1); }
+    .xp { color: var(--accent1); margin-top: 0.5rem; font-size: 1.05rem; }
     .level { color: #4ade80; margin-top: 0.25rem; font-size: 1rem; }
     .streak { color: gold; margin-top: 0.25rem; font-size: 1rem; text-shadow: 0 0 10px gold; }
-    .badges { margin-top: 0.5rem; }
-    .badge { display: inline-block; background: #0ea5e9; color: black; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.8rem; margin: 0.1rem; box-shadow: 0 0 5px #38bdf8; }
+    .badges { margin-top: 0.5rem; display:flex; flex-wrap:wrap; gap:0.3rem; }
+    .badge { display: inline-block; background: linear-gradient(135deg, var(--accent1), var(--accent2)); color: black; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.8rem; box-shadow: 0 0 5px var(--accent1); }
 
-    /* Orb (Cookie Clicker style) */
+    .up-pip { color: var(--up-color); font-weight:900; }
+
+    /* orb */
     #orb {
-      width:150px; height:150px; border-radius:50%;
-      margin:1rem auto;
-      background:radial-gradient(circle, #38bdf8, #0ea5e9);
-      box-shadow:0 0 30px #38bdf8;
-      cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.5rem; color:black; font-weight:bold;
-      transition:transform 0.1s ease;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0.8rem auto;
+        display: block;
+        background:
+          radial-gradient(circle at 20% 80%, #0010d9 0%, rgba(0,0,0,0) 60%) no-repeat,
+          radial-gradient(circle at 80% 20%, #00f6e1 0%, rgba(0,0,0,0) 60%) no-repeat,
+          linear-gradient(135deg, #28303a, #2f2f35);
+        background-blend-mode: screen;
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 50px rgba(14, 165, 233, 0.4);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.12s ease;
+        animation: orbFlow 14s linear infinite, orbHue 16s linear infinite;
+    }
+
+    @keyframes orbFlow {
+        0% { background-position: 20% 80%, 80% 20%; }
+        25% { background-position: 30% 70%, 70% 30%; }
+        50% { background-position: 80% 15%, 15% 85%; }
+        75% { background-position: 70% 85%, 20% 20%; }
+        100% { background-position: 20% 80%, 80% 20%; }
+    }
+    @keyframes orbHue {
+        0% { filter: hue-rotate(0deg); }
+        50% { filter: hue-rotate(90deg); }
+        100% { filter: hue-rotate(0deg); }
+    }
+
+    /* float text animation (SP pop) */
+    .float-text {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: -10px;
+        color: var(--accent1);
+        font-weight: 900;
+        text-shadow: 0 0 6px var(--accent2);
+        pointer-events: none;
+        animation: floatUp 1000ms ease-out forwards;
+    }
+    @keyframes floatUp {
+        0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        60% { opacity: 1; transform: translate(-50%, -28px) scale(1.15); }
+        100% { opacity: 0; transform: translate(-50%, -48px) scale(1.3); }
+    }
+
+    /* Leaderboard fixed panel */
+    #leaderboardCard {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--accent1);
+        border-radius: 1rem;
+        padding: 0.75rem;
+        width: 260px;
+        max-height: 70vh;
+        overflow: auto;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        z-index: 50;
+    }
+    #leaderboardCard h3 { margin: 0 0 0.5rem 0; color: var(--accent2); }
+    .leader-item { padding: 0.4rem 0.35rem; border-bottom: 1px dashed rgba(255,255,255,0.03); color: #cfeffd; font-weight:700; }
+
+    /* upgrades container styling */
+    .upgrades { display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem; }
+    .upgrade-row { display:flex; justify-content:space-between; align-items:center; gap:0.6rem; }
+    .muted { color: #bfefff; font-size:0.9rem; }
+
+    .buildings { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:0.6rem; margin-top:0.5rem; }
+    .building { background: rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.6rem; border:1px solid rgba(255,255,255,0.03); }
+    .achievement { background: rgba(255,255,255,0.02); padding:0.4rem; border-radius:0.4rem; margin:0.2rem 0; }
+
+    .shop { display:flex; flex-direction:column; gap:0.5rem; margin-top:0.6rem; }
+    .shop-item { display:flex; justify-content:space-between; align-items:center; padding:0.4rem; border-radius:0.5rem; background: rgba(255,255,255,0.02); }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      #leaderboardCard { position: static; width: auto; max-height: none; margin-top: 1rem; }
     }
 </style>
 </head>
 <body>
-<h1>Assignments</h1>
+<h1>Assignments — Upgrade Points Edition</h1>
 
-<div class="card">
-    <h2 class="section-title">Progress</h2>
-    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-    <div class="xp" id="xp">XP: 0</div>
-    <div class="level" id="level">Level: 1</div>
-    <div class="streak" id="streak">Streak: 0</div>
-    <div class="badges" id="badges"></div>
-    <div id="studyPoints">Study Points: 0</div>
+<div class="main">
+  <div class="col">
+    <div class="card">
+        <h2 class="section-title">Progress</h2>
+        <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+        <div class="xp" id="xp">XP: 0</div>
+        <div class="level" id="level">Level: 1</div>
+        <div class="streak" id="streak">Streak: 0</div>
+        <div class="badges" id="badges"></div>
+        <div id="studyPoints" style="margin-top:0.5rem;">Study Points: 0</div>
+        <div id="upgradePoints" style="margin-top:0.25rem;"><span class="up-pip">UP:</span> <strong id="upCount">0</strong></div>
+        <div class="muted" id="cpsDisplay">CPS: 0</div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Incomplete Tasks</h2>
+        <div id="incompleteTasks"></div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Completed Tasks</h2>
+        <div id="completedTasks"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card">
+        <h2 class="section-title">Study Orb</h2>
+        <div id="orb" title="Click to gain Study Points"> </div>
+        <div class="upgrades" id="upgrades">
+          <!-- upgrade controls inserted here -->
+        </div>
+
+        <h3 style="margin-top:0.5rem; color:var(--accent2);">Buildings</h3>
+        <div class="buildings" id="buildings"></div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Actions / Shop (Spend UP)</h2>
+        <div class="upgrade-row">
+          <div>
+            <div class="muted">Buy Click Upgrade (SP)</div>
+            <div class="muted">Increase SP per click</div>
+          </div>
+          <button id="buyUpgrade">Buy</button>
+        </div>
+
+        <div class="upgrade-row" style="margin-top:0.6rem;">
+          <div>
+            <div class="muted">Buy Auto-Clicker (SP)</div>
+            <div class="muted">Generates SP every second</div>
+          </div>
+          <button id="buyAuto">Buy</button>
+        </div>
+
+        <div style="margin-top:0.6rem;" class="muted">Assignments give <strong>Upgrade Points (UP)</strong> — spend UP below on permanent meta upgrades.</div>
+
+        <div class="shop" id="upShop">
+          <!-- UP shop items inserted here -->
+        </div>
+
+        <div style="margin-top:0.6rem;" class="muted">Auto-Clickers and SP upgrades persist to your account. UP upgrades are permanent across prestiges.</div>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-    <h2 class="section-title">Incomplete Tasks</h2>
-    <div id="incompleteTasks"></div>
+<!-- Achievements and Stats -->
+<div class="card" style="margin-top:1rem; max-width:1100px; margin-left:auto; margin-right:auto;">
+  <h2 class="section-title">Achievements & Stats</h2>
+  <div id="achievements"></div>
+  <h3 style="margin-top:0.6rem; color:var(--accent2);">Stats</h3>
+  <div id="stats" class="muted"></div>
 </div>
 
-<div class="card">
-    <h2 class="section-title">Completed Tasks</h2>
-    <div id="completedTasks"></div>
-</div>
-
-<div class="card">
-    <h2 class="section-title">Orbs</h2>
-    <div id="orb">🔮</div>
-    <button id="buyUpgrade">Buy Upgrade (Cost: 50)</button>
-    <div id="upgrades"></div>
-</div>
-
-<div class="card">
-    <h2 class="section-title">Leaderboard</h2>
-    <div style="resize: none; width: 150; height: 150;" id="leaderboard"></div>
+<!-- Leaderboard pinned -->
+<div id="leaderboardCard" aria-live="polite">
+  <h3>Leaderboard</h3>
+  <div id="leaderboard"></div>
 </div>
 
 <script type="module">
+/* Firebase + Upgrade-Points game logic integrated */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, updateDoc, doc, setDoc, getDoc, orderBy, limit }
-    from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+import {
+  getFirestore, collection, query, where, getDocs, updateDoc,
+  doc, setDoc, getDoc, orderBy, limit, arrayUnion, increment, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCOAHU1cXBuW3PgyXtdLWGkZ2ayAKfCYBc",
@@ -118,6 +279,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* DOM */
 const incompleteEl = document.getElementById("incompleteTasks");
 const completedEl = document.getElementById("completedTasks");
 const xpEl = document.getElementById("xp");
@@ -126,171 +288,597 @@ const streakEl = document.getElementById("streak");
 const progressEl = document.getElementById("progress");
 const badgesEl = document.getElementById("badges");
 const studyPointsEl = document.getElementById("studyPoints");
+const upCountEl = document.getElementById("upCount");
 const orbEl = document.getElementById("orb");
 const buyUpgradeBtn = document.getElementById("buyUpgrade");
-const upgradesEl = document.getElementById("upgrades");
+const buyAutoBtn = document.getElementById("buyAuto");
+const upgradesContainer = document.getElementById("upgrades");
 const leaderboardEl = document.getElementById("leaderboard");
+const buildingsEl = document.getElementById("buildings");
+const achEl = document.getElementById("achievements");
+const statsEl = document.getElementById("stats");
+const cpsDisplay = document.getElementById("cpsDisplay");
+const upShopEl = document.getElementById("upShop");
 
+/* State */
 let uid;
 let xp = 0, level = 1, streak = 0;
 let studyPoints = 0, spPerClick = 1, upgradeLevel = 0;
+let autoClickers = 0;
+let multiplier = 1, prestige = 0;
 let lastCompleted = null;
+let lastActive = new Date();
+let upgradePoints = 0; // NEW: Upgrade Points (UP)
+let metaUpgrades = {}; // holds purchases bought with UP (permanent multipliers)
 const xpPerLevel = 100;
 
-// Auth
+// new: buildings & upgrades & stats
+const buildingTypes = [
+  { id: 'lamp', name: 'Study Lamp', baseCost: 50, baseCps: 0.5 },
+  { id: 'group', name: 'Study Group', baseCost: 400, baseCps: 4 },
+  { id: 'library', name: 'Library', baseCost: 3000, baseCps: 30 },
+  { id: 'research', name: 'Research Hub', baseCost: 20000, baseCps: 150 }
+];
+let buildings = {}; // id -> count
+let upgrades = {}; // misc upgrades
+let totalClicks = 0, totalSP = 0, totalPrestiges = 0;
+let achievements = {};
+
+// autosave throttle
+let pendingSave = false;
+let saveTimer = null;
+
+/* Helpers */
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function costFor(base, count){ return Math.ceil(base * Math.pow(1.15, count)); }
+function spawnFloatText(containerEl, text, color = null){
+  const floatEl = document.createElement("div");
+  floatEl.className = "float-text";
+  floatEl.textContent = text;
+  if(color) floatEl.style.color = color;
+  containerEl.appendChild(floatEl);
+  setTimeout(()=> floatEl.remove(), 1050);
+}
+
+/* Auth + load user */
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = "/changemakerproject"; return; }
-    uid = user.uid;
+  if(!user){ window.location.href = "/changemakerproject"; return; }
+  uid = user.uid;
 
-    const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-        const data = userSnap.data();
-        xp = data.xp || 0;
-        level = data.level || 1;
-        streak = data.streak || 0;
-        studyPoints = data.studyPoints || 0;
-        spPerClick = data.spPerClick || 1;
-        upgradeLevel = data.upgradeLevel || 0;
-        lastCompleted = data.lastCompleted ? new Date(data.lastCompleted.seconds * 1000) : null;
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+
+  if(userSnap.exists()){
+    const data = userSnap.data();
+    xp = data.xp || 0;
+    level = data.level || 1;
+    streak = data.streak || 0;
+    studyPoints = data.studyPoints || 0;
+    spPerClick = data.spPerClick || 1;
+    upgradeLevel = data.upgradeLevel || 0;
+    autoClickers = data.autoClickers || 0;
+    multiplier = data.multiplier || 1;
+    prestige = data.prestige || 0;
+    lastCompleted = data.lastCompleted ? new Date(data.lastCompleted.seconds * 1000) : null;
+    lastActive = data.lastActive ? new Date(data.lastActive.seconds * 1000) : new Date();
+    buildings = data.buildings || {};
+    upgrades = data.upgrades || {};
+    totalClicks = data.totalClicks || 0;
+    totalSP = data.totalSP || 0;
+    totalPrestiges = data.totalPrestiges || 0;
+    achievements = data.achievements || {};
+    upgradePoints = data.upgradePoints || 0; // load UP
+    metaUpgrades = data.metaUpgrades || {};
+
+    // offline progress: compute elapsed seconds and grant CPS * elapsed
+    const now = new Date();
+    const elapsed = Math.floor((now - lastActive) / 1000);
+    if(elapsed > 5){
+      const offlineGain = Math.round(getCPS() * elapsed * 0.6); // give 60% of potential
+      if(offlineGain > 0){
+        studyPoints += offlineGain;
+        totalSP += offlineGain;
+        spawnFloatText(upgradesContainer, `+${offlineGain} SP (offline)`);
+      }
+    }
+  } else {
+    // create initial user doc with fields used by the game
+    buildings = {};
+    upgrades = {};
+    achievements = {};
+    metaUpgrades = {};
+    await setDoc(userRef, {
+      xp:0, level:1, streak:0, studyPoints:0, spPerClick:1,
+      upgradeLevel:0, autoClickers:0, multiplier:1, prestige:0, lastCompleted:null,
+      lastActive: serverTimestamp(), buildings, upgrades, totalClicks:0, totalSP:0, totalPrestiges:0, achievements,
+      upgradePoints:0, metaUpgrades
+    });
+  }
+
+  updateProgress();
+  await loadTasks();
+  await loadLeaderboard();
+  renderUpgradesUI();
+  renderBuildingsUI();
+  renderAchievements();
+  renderUPShop();
+  scheduleAutosave();
+});
+
+/* load tasks */
+async function loadTasks(){
+  incompleteEl.innerHTML = "";
+  completedEl.innerHTML = "";
+
+  const q = query(collection(db, "tasks"), where("assignedTo", "array-contains", uid));
+  const snap = await getDocs(q);
+
+  snap.forEach(docSnap => {
+    const task = docSnap.data();
+    const id = docSnap.id;
+
+    // ensure completedBy exists
+    task.completedBy = Array.isArray(task.completedBy) ? task.completedBy : [];
+
+    const taskEl = document.createElement("div");
+    taskEl.className = "task";
+    // keep dataset consistent with css expectations
+    taskEl.dataset.status = task.completedBy.includes(uid) ? "completed" : "incomplete";
+
+    const left = document.createElement("div");
+    left.innerHTML = `<div class="title">${task.title}</div><div class="meta">Difficulty: ${task.xp} — gives UP</div>`;
+
+    const right = document.createElement("div");
+    const btn = document.createElement("button");
+    btn.textContent = task.completedBy.includes(uid) ? "✅" : "Complete";
+    btn.onclick = () => completeTask(id, task, taskEl);
+    right.appendChild(btn);
+
+    taskEl.appendChild(left);
+    taskEl.appendChild(right);
+
+    if(task.completedBy.includes(uid)){
+      taskEl.classList.add("completed");
+      completedEl.appendChild(taskEl);
     } else {
-        await setDoc(userRef, { xp:0, level:1, streak:0, studyPoints:0, spPerClick:1, upgradeLevel:0, lastCompleted:null });
+      incompleteEl.appendChild(taskEl);
     }
+  });
+}
 
-    updateProgress();
-    loadTasks();
-    loadLeaderboard();
-});
+/* Complete a task => give Upgrade Points (UP) instead of SP */
+async function completeTask(taskId, task, taskEl){
+  // use arrayUnion to avoid race conditions
+  try {
+    await updateDoc(doc(db, "tasks", taskId), { completedBy: arrayUnion(uid) });
+  } catch(e){ console.error('task update failed', e); }
 
-// Load tasks
-async function loadTasks() {
-    incompleteEl.innerHTML = "";
-    completedEl.innerHTML = "";
+  // streak logic
+  const today = new Date();
+  const lastDay = lastCompleted ? new Date(lastCompleted) : null;
+  const diffDays = lastDay ? Math.floor((today - lastDay)/86400000) : null;
 
-    const q = query(collection(db, "tasks"), where("assignedTo", "array-contains", uid));
-    const snap = await getDocs(q);
+  if (!lastCompleted || diffDays === 1) { streak += 1; }
+  else if (diffDays > 1) { streak = 1; }
+  lastCompleted = today;
 
-    snap.forEach(docSnap => {
-        const task = docSnap.data();
-        const taskEl = document.createElement("div");
-        taskEl.className = "task";
-        taskEl.textContent = `${task.title} - ${task.xp} Points`;
+  // compute UP reward based on task difficulty (task.xp holds a difficulty number used previously)
+  const baseDifficulty = typeof task.xp === "number" ? task.xp : Number(task.xp) || 0;
+  // map difficulty to UP: small tasks -> 1 UP, harder tasks scale higher, capped
+  let rewardUP = Math.ceil(baseDifficulty / 30); // e.g., 30 sp difficulty -> 1 UP
+  rewardUP = clamp(rewardUP, 1, 5);
+  // apply small bonus per consecutive streak (encourage daily study)
+  rewardUP = Math.ceil(rewardUP * (1 + Math.min(streak, 10) * 0.03));
 
-        const btn = document.createElement("button");
-        btn.textContent = task.completedBy.includes(uid) ? "✅" : "Complete";
-        btn.onclick = () => completeTask(docSnap.id, task);
+  upgradePoints += rewardUP;
 
-        if (task.completedBy.includes(uid)) {
-            taskEl.classList.add("completed");
-            completedEl.appendChild(taskEl);
-        } else {
-            taskEl.appendChild(btn);
-            incompleteEl.appendChild(taskEl);
-        }
+  // persist important fields now
+  try {
+    await updateDoc(doc(db, "users", uid), {
+      streak, lastCompleted: serverTimestamp(), upgradePoints: increment(rewardUP), totalClicks: increment(1)
     });
+  } catch(e){ console.error('user update error', e); }
+
+  // visual float on task
+  spawnFloatText(taskEl, `+${rewardUP} UP`, 'var(--up-color)');
+  updateProgress();
+  await loadTasks();
+  await updateLeaderboardEntry();
+  checkAchievements();
 }
 
-// Complete task → gives Study Points
-async function completeTask(taskId, task) {
-    const today = new Date();
-    const lastDay = lastCompleted ? new Date(lastCompleted) : null;
-    const diffDays = lastDay ? Math.floor((today - lastDay)/86400000) : null;
-
-    if (!task.completedBy.includes(uid)) {
-        task.completedBy.push(uid);
-        await updateDoc(doc(db, "tasks", taskId), { completedBy: task.completedBy });
-
-        if (!lastCompleted || diffDays === 1) { streak += 1; }
-        else if (diffDays > 1) { streak = 1; }
-        lastCompleted = today;
-
-        studyPoints += task.xp;
-        xp = studyPoints;
-        level = Math.floor(xp / xpPerLevel) + 1;
-
-        await updateDoc(doc(db, "users", uid), { xp, level, streak, lastCompleted, studyPoints, spPerClick, upgradeLevel });
-        updateProgress();
-        loadTasks();
-        updateLeaderboardEntry();
-    }
-}
-
-// Orb clicking
+/* Orb clicking behavior with critical/golden chance */
 orbEl.addEventListener("click", async () => {
-    studyPoints += spPerClick;
-    xp = studyPoints;
-    level = Math.floor(xp / xpPerLevel) + 1;
-    orbEl.style.transform = "scale(0.9)";
-    setTimeout(() => orbEl.style.transform = "scale(1)", 100);
-    updateProgress();
-    await updateDoc(doc(db, "users", uid), { studyPoints, xp, level });
-    updateLeaderboardEntry();
+  // golden orb chance influenced by meta upgrades
+  const baseCrit = 0.03;
+  const critBonus = metaUpgrades.critChance || 0; // purchased with UP
+  const critRoll = Math.random();
+  const isGolden = critRoll < (baseCrit + critBonus);
+  const critMult = isGolden ? 5 : 1;
+
+  // click power affected by meta upgrade 'clickPower' which multiplies spPerClick
+  const clickPowerMult = metaUpgrades.clickPower ? (1 + 0.5 * metaUpgrades.clickPower) : 1;
+  const gain = Math.round(spPerClick * multiplier * clickPowerMult * (1 + Math.min(streak,10) * 0.01) * critMult);
+
+  studyPoints += gain;
+  totalSP += gain;
+  totalClicks += 1;
+  xp = Math.floor(studyPoints / 10);
+  level = Math.floor(xp / xpPerLevel) + 1;
+
+  // orb click visual
+  orbEl.style.transform = "scale(0.93)";
+  setTimeout(()=> orbEl.style.transform = "scale(1)", 90);
+
+  // spawn float near orb
+  const float = document.createElement("div");
+  float.className = "float-text";
+  float.style.top = "-12px";
+  float.style.left = "50%";
+  float.textContent = `+${gain} SP${isGolden? ' ✨' : ''}`;
+  orbEl.appendChild(float);
+  setTimeout(()=> float.remove(), 1000);
+
+  markDirty();
+  updateProgress();
+  await updateLeaderboardEntry();
+  checkAchievements();
 });
 
-// Buy upgrades
+/* Buy click upgrade (SP economy) */
 buyUpgradeBtn.addEventListener("click", async () => {
-    const cost = 50 * (upgradeLevel + 1);
-    if (studyPoints >= cost) {
-        studyPoints -= cost;
-        upgradeLevel += 1;
-        spPerClick += 1;
-        xp = studyPoints;
-        level = Math.floor(xp / xpPerLevel) + 1;
-        await updateDoc(doc(db, "users", uid), { studyPoints, upgradeLevel, spPerClick, xp, level });
-        updateProgress();
-        updateLeaderboardEntry();
-    }
+  const cost = 50 * Math.pow(1.3, upgradeLevel); // stronger scaling
+  const c = Math.ceil(cost);
+  if(studyPoints >= c){
+    studyPoints -= c;
+    upgradeLevel += 1;
+    spPerClick += Math.ceil(1 + upgradeLevel * 0.5);
+    xp = Math.floor(studyPoints / 10);
+    level = Math.floor(xp / xpPerLevel) + 1;
+    markDirty();
+    renderUpgradesUI();
+    updateProgress();
+    await updateLeaderboardEntry();
+    spawnFloatText(upgradesContainer, `- ${c} SP`);
+    checkAchievements();
+  } else {
+    buyUpgradeBtn.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 260 });
+  }
 });
 
-// Update UI
-function updateProgress() {
-    xpEl.textContent = "XP: " + xp;
-    levelEl.textContent = "Level: " + level;
-    streakEl.textContent = "Streak: " + streak;
-    studyPointsEl.textContent = "Study Points: " + studyPoints;
-    progressEl.style.width = ((xp % xpPerLevel) / xpPerLevel * 100) + "%";
+/* Buy auto-clicker (SP economy) */
+buyAutoBtn.addEventListener("click", async () => {
+  const cost = Math.ceil(200 * Math.pow(1.22, autoClickers));
+  if(studyPoints >= cost){
+    studyPoints -= cost;
+    autoClickers += 1;
+    markDirty();
+    renderUpgradesUI();
+    updateProgress();
+    await updateLeaderboardEntry();
+    spawnFloatText(upgradesContainer, `- ${cost} SP`);
+    checkAchievements();
+  } else {
+    buyAutoBtn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 220 });
+  }
+});
 
-    badgesEl.innerHTML = "";
-    for (let i = 1; i <= 10; i++) {
-        if (streak >= i) {
-            const badge = document.createElement("span");
-            badge.className = "badge";
-            badge.textContent = `🔥 ${i}-Day Streak`;
-            badgesEl.appendChild(badge);
+/* UP Shop: spend Upgrade Points on permanent meta upgrades */
+const UP_SHOP = [
+  { id: 'clickPower', name: 'Double Click Power', desc: 'Increase click power permanently (stackable)', baseCost: 1 },
+  { id: 'autoPower', name: 'Auto Efficiency', desc: 'Auto-clickers produce 2× more (stackable)', baseCost: 2 },
+  { id: 'buildBoost', name: 'Building Boost', desc: 'Buildings produce +25% per purchase', baseCost: 2 },
+  { id: 'critChance', name: 'Critical Chance', desc: 'Increase golden orb chance by +3%', baseCost: 1 },
+  { id: 'prestigeBoost', name: 'Prestige Boost', desc: 'Permanent prestige multiplier +0.1', baseCost: 5 }
+];
+
+function renderUPShop(){
+  upShopEl.innerHTML = '';
+  for(const item of UP_SHOP){
+    const owned = metaUpgrades[item.id] || 0;
+    const cost = Math.ceil(item.baseCost * Math.pow(1.5, owned));
+    const div = document.createElement('div');
+    div.className = 'shop-item';
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:800;">${item.name} ${owned? `(x${owned})` : ''}</div>
+        <div class="muted">${item.desc}</div>
+      </div>
+      <div>
+        <div style="text-align:right;">Cost: <strong class="up-pip">${cost} UP</strong></div>
+        <div style="margin-top:0.3rem;text-align:right;"><button data-id="${item.id}">Buy</button></div>
+      </div>
+    `;
+    const btn = div.querySelector('button');
+    btn.addEventListener('click', async () => {
+      if(upgradePoints >= cost){
+        upgradePoints -= cost;
+        metaUpgrades[item.id] = (metaUpgrades[item.id]||0) + 1;
+        // apply immediate effect for some
+        if(item.id === 'prestigeBoost'){
+          multiplier += 0.1; // small permanent boost
         }
+        markDirty();
+        renderUPShop();
+        renderUpgradesUI();
+        updateProgress();
+        spawnFloatText(upShopEl, `- ${cost} UP`, 'var(--up-color)');
+        await updateLeaderboardEntry();
+      } else {
+        btn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 200 });
+      }
+    });
+    upShopEl.appendChild(div);
+  }
+}
+
+/* Prestige */
+const MIN_PRESTIGE_LEVEL = 50;
+
+async function doPrestige(){
+  if(level < MIN_PRESTIGE_LEVEL){
+    return alert(`Reach level ${MIN_PRESTIGE_LEVEL} to prestige.`);
+  }
+  if(!confirm("Prestiging will reset SP, buildings, and SP-upgrades but UP and UP-upgrades remain permanent. Proceed?")) return;
+  prestige += 1;
+  totalPrestiges += 1;
+  // grant a prestige reward that is weaker than UP but still meaningful
+  multiplier *= 1.5; // prestige multiplier
+  // reset SP-related progression but keep upgradePoints/metaUpgrades
+  studyPoints = 0;
+  xp = 0; level = 1;
+  spPerClick = 1; upgradeLevel = 0; autoClickers = 0; buildings = {};
+
+  try{
+    await updateDoc(doc(db, "users", uid), { prestige, multiplier, studyPoints, xp, level, spPerClick, upgradeLevel, autoClickers, buildings, totalPrestiges: increment(1) });
+  } catch(e){ console.error('prestige save failed', e); }
+
+  renderUpgradesUI();
+  renderBuildingsUI();
+  updateProgress();
+  await updateLeaderboardEntry();
+  checkAchievements();
+}
+
+// wire prestige button to doPrestige
+const prestigeBtn = document.getElementById('btnPrestige');
+prestigeBtn.addEventListener('click', doPrestige);
+
+/* render upgrades UI (status display) */
+function renderUpgradesUI(){
+  upgradesContainer.innerHTML = `
+    <div class="muted">SP / click: <strong>${spPerClick}</strong></div>
+    <div class="muted">Upgrade level: <strong>${upgradeLevel}</strong></div>
+    <div class="muted">Auto-clickers: <strong>${autoClickers}</strong></div>
+    <div class="muted">Prestige ×: <strong>${multiplier.toFixed(2)} (prestiges: ${prestige})</strong></div>
+    <div class="muted">UP: <strong class="up-pip">${upgradePoints}</strong></div>
+  `;
+}
+
+/* Buildings UI */
+function renderBuildingsUI(){
+  buildingsEl.innerHTML = '';
+  for(const b of buildingTypes){
+    const count = buildings[b.id] || 0;
+    const cost = costFor(b.baseCost, count);
+    const buildingBoost = (metaUpgrades.buildBoost || 0) * 0.25; // each purchase +25%
+    const effectiveCps = b.baseCps * (1 + buildingBoost);
+    const div = document.createElement('div');
+    div.className = 'building';
+    div.innerHTML = `
+      <div style="font-weight:800;">${b.name}</div>
+      <div class="muted">Count: <strong>${count}</strong></div>
+      <div class="muted">CPS each: <strong>${(effectiveCps * (metaUpgrades.autoPower? (1 + 0.5*metaUpgrades.autoPower) : 1)).toFixed(2)}</strong></div>
+      <div class="muted">Cost: <strong>${cost} SP</strong></div>
+      <div style="margin-top:0.4rem;"><button data-id="${b.id}">Buy</button></div>
+    `;
+    const btn = div.querySelector('button');
+    btn.addEventListener('click', async () => {
+      if(studyPoints >= cost){
+        studyPoints -= cost;
+        buildings[b.id] = (buildings[b.id]||0) + 1;
+        markDirty();
+        renderBuildingsUI();
+        updateProgress();
+        spawnFloatText(buildingsEl, `- ${cost} SP`);
+        await updateLeaderboardEntry();
+        checkAchievements();
+      } else {
+        btn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 200 });
+      }
+    });
+    buildingsEl.appendChild(div);
+  }
+}
+
+/* compute CPS from buildings + autoClickers */
+function getCPS(){
+  let cps = 0;
+  for(const b of buildingTypes){
+    const count = buildings[b.id] || 0;
+    const base = b.baseCps * count;
+    cps += base;
+  }
+  // autoClickers yield spPerClick every 5s -> CPS contribution
+  const autoPowerMult = metaUpgrades.autoPower ? (1 + 0.5*metaUpgrades.autoPower) : 1;
+  cps += (autoClickers * (spPerClick * autoPowerMult) * multiplier) / 5;
+
+  // global building multiplier from prestige and meta upgrades
+  const globalMult = 1 + (metaUpgrades.buildBoost || 0) * 0.25;
+  cps = cps * globalMult;
+
+  // some upgrades may increase click power
+  if(metaUpgrades.global_cps) cps *= 1 + metaUpgrades.global_cps*0.15;
+
+  return cps * multiplier;
+}
+
+/* Building + auto-income loop (every 1s) */
+setInterval(async () => {
+  if(!uid) return;
+  const cps = getCPS();
+  const gain = Math.round(cps);
+  if(gain > 0){
+    studyPoints += gain;
+    totalSP += gain;
+    xp = Math.floor(studyPoints / 10);
+    level = Math.floor(xp / xpPerLevel) + 1;
+    markDirty();
+    updateProgress();
+    // persist less frequently (throttled)
+  }
+}, 1000);
+
+/* throttled save: flush every 15s if dirty */
+function markDirty(){
+  pendingSave = true;
+  if(saveTimer) return;
+  saveTimer = setTimeout(async () => {
+    await flushSave();
+    saveTimer = null;
+  }, 15000);
+}
+
+async function flushSave(){
+  if(!pendingSave || !uid) return;
+  pendingSave = false;
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+      studyPoints, xp, level, spPerClick, upgradeLevel, autoClickers, multiplier, prestige, buildings, upgrades, totalClicks, totalSP, lastActive: serverTimestamp(), achievements, upgradePoints, metaUpgrades
+    });
+    await updateLeaderboardEntry();
+  } catch(e){ console.error('flush save failed', e); }
+}
+
+/* update UI */
+function updateProgress(){
+  xpEl.textContent = `XP: ${xp}`;
+  levelEl.textContent = `Level: ${level}`;
+  streakEl.textContent = `Streak: ${streak}`;
+  studyPointsEl.textContent = `Study Points: ${studyPoints}`;
+  upCountEl.textContent = `${upgradePoints}`;
+  const pct = ((xp % xpPerLevel) / xpPerLevel) * 100;
+  progressEl.style.width = `${clamp(pct,0,100)}%`;
+
+  badgesEl.innerHTML = "";
+  const badgeDays = [1,3,5,7,10];
+  for(let d of badgeDays){
+    if(streak >= d){
+      const b = document.createElement("span");
+      b.className = "badge";
+      b.textContent = `🔥 ${d}-Day`;
+      badgesEl.appendChild(b);
     }
+  }
+  if(prestige > 0){
+    const p = document.createElement("span");
+    p.className = "badge";
+    p.textContent = `✨ Prestige ×${multiplier.toFixed(2)}`;
+    badgesEl.appendChild(p);
+  }
 
-    buyUpgradeBtn.textContent = `Buy Upgrade (Cost: ${50 * (upgradeLevel+1)})`;
-    upgradesEl.textContent = `Upgrade Level: ${upgradeLevel} (+${spPerClick} SP/click)`;
+  // update action buttons labels
+  buyUpgradeBtn.textContent = `Buy (${Math.ceil(50 * Math.pow(1.3, upgradeLevel))} SP)`;
+  buyAutoBtn.textContent = `Buy Auto (${Math.ceil(200 * Math.pow(1.22, autoClickers))} SP)`;
+
+  // CPS display
+  const cps = getCPS();
+  cpsDisplay.textContent = `CPS: ${cps.toFixed(2)}`;
+
+  // stats
+  statsEl.textContent = `Total clicks: ${totalClicks} • Total SP: ${totalSP} • Prestiges: ${totalPrestiges}`;
 }
 
-// Leaderboard
-async function updateLeaderboardEntry() {
+/* Achievements */
+function checkAchievements(){
+  let changed = false;
+  // simple achievements
+  if(!achievements['click_100'] && totalClicks >= 100){ achievements['click_100'] = true; spawnFloatText(achEl, 'Achievement: 100 Clicks'); changed = true; }
+  if(!achievements['sp_1000'] && totalSP >= 1000){ achievements['sp_1000'] = true; spawnFloatText(achEl, 'Achievement: 1,000 SP'); changed = true; }
+  if(!achievements['prestige_1'] && prestige >= 1){ achievements['prestige_1'] = true; spawnFloatText(achEl, 'Achievement: First Prestige'); changed = true; }
+  if(!achievements['7_streak'] && streak >= 7){ achievements['7_streak'] = true; spawnFloatText(achEl, 'Achievement: 7-Day Streak'); changed = true; }
+  if(!achievements['up_10'] && upgradePoints >= 10){ achievements['up_10'] = true; spawnFloatText(achEl, 'Achievement: 10 UP earned'); changed = true; }
+  if(changed) renderAchievements();
+}
+
+function renderAchievements(){
+  achEl.innerHTML = '';
+  const mapping = {
+    'click_100': 'Clicked 100 times',
+    'sp_1000': 'Earned 1,000 SP',
+    'prestige_1': 'First Prestige',
+    '7_streak': '7-Day Streak',
+    'up_10': 'Earned 10 UP'
+  };
+  for(const k in mapping){
+    const el = document.createElement('div');
+    el.className = 'achievement';
+    el.textContent = `${mapping[k]} ${achievements[k]? '✅' : '⌛'}`;
+    achEl.appendChild(el);
+  }
+}
+
+/* Leaderboard functions */
+async function updateLeaderboardEntry(){
+  try {
     await setDoc(doc(db, "leaderboard", uid), {
-        uid,
-        studyPoints,
-        xp,
-        level,
-        displayName: auth.currentUser.email
+      uid,
+      studyPoints,
+      xp,
+      level,
+      upgradePoints,
+      displayName: auth.currentUser.email || "Student"
     });
-    loadLeaderboard();
+    await loadLeaderboard();
+  } catch(e){
+    console.error("Couldn't update leaderboard", e);
+  }
 }
 
-async function loadLeaderboard() {
+async function loadLeaderboard(){
+  try {
     leaderboardEl.innerHTML = "";
-    const q = query(collection(db, "leaderboard"), orderBy("studyPoints", "desc"), limit(5));
+    const q = query(collection(db, "leaderboard"), orderBy("studyPoints", "desc"), limit(10));
     const snap = await getDocs(q);
-    const i = 0;
-    snap.forEach((docSnap, i) => {
-        const data = docSnap.data();
-        const displayName = data.displayName || "Anonymous";
-        const studyPoints = typeof data.studyPoints === "number" ? data.studyPoints : 0;
-        const level = typeof data.level === "number" ? data.level : 1;
-        const div = document.createElement("div");
-        div.textContent = `${displayName} — ${studyPoints} SP (Lvl ${level})`;
-        leaderboardEl.appendChild(div);
+    if(snap.empty){
+      leaderboardEl.textContent = "No data yet";
+      return;
+    }
+    let place = 1;
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const displayName = data.displayName || "Anonymous";
+      const sp = typeof data.studyPoints === "number" ? data.studyPoints : 0;
+      const lvl = typeof data.level === "number" ? data.level : 1;
+      const up = typeof data.upgradePoints === "number" ? data.upgradePoints : 0;
+      const div = document.createElement("div");
+      div.className = "leader-item";
+      div.textContent = `#${place} ${displayName} — ${sp} SP (Lv ${lvl}) • ${up} UP`;
+      leaderboardEl.appendChild(div);
+      place++;
     });
+  } catch(e){
+    console.error("Could not load leaderboard", e);
+  }
 }
+
+/* initial render */
+renderUpgradesUI();
+updateProgress();
+renderBuildingsUI();
+renderAchievements();
+renderUPShop();
+
+// ensure periodic flush as backup
+setInterval(() => { if(uid) flushSave(); }, 60000);
+
+/* scheduleAutosave helper (keeps lastActive updated) */
+function scheduleAutosave(){
+  setInterval(() => {
+    if(uid) markDirty();
+  }, 30000);
+}
+
 </script>
 </body>
 </html>
