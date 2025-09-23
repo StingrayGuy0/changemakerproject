@@ -700,12 +700,12 @@ function getCPS(){
     cps += base;
   }
   // autoClickers yield spPerClick every 5s -> CPS contribution
-  const autoPowerMult = metaUpgrades.autoPower ? (1 + 0.5*metaUpgrades.autoPower) : 1;
-  cps += (autoClickers * (spPerClick * autoPowerMult) * multiplier) / 5;
+  const autoPowerMultiplier = metaUpgrades.autoPower ? (1 + 0.5*metaUpgrades.autoPower) : 1;
+  cps += (autoClickers * (spPerClick * autoPowerMultiplier) * multiplier) / 5;
 
   // global building multiplier from prestige and meta upgrades
-  const globalMult = 1 + (metaUpgrades.buildBoost || 0) * 0.25;
-  cps = cps * globalMult;
+  const globalMultiplier = 1 + (metaUpgrades.buildBoost || 0) * 0.25;
+  cps = cps * globalMultiplier;
 
   // some upgrades may increase click power
   if(metaUpgrades.global_cps) cps *= 1 + metaUpgrades.global_cps*0.15;
@@ -729,7 +729,7 @@ setInterval(async () => {
   }
 }, 1000);
 
-/* throttled save: flush every 15s if dirty */
+// no idea what this is, friend helped me
 function markDirty(){
   pendingSave = true;
   if(saveTimer) return;
@@ -750,7 +750,7 @@ async function flushSave(){
   } catch(e){ console.error('flush save failed', e); }
 }
 
-/* update UI */
+//ui updates
 function updateProgress(){
   xpEl.textContent = `XP: ${xp}`;
   levelEl.textContent = `Level: ${level}`;
