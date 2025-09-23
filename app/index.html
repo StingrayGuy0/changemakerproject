@@ -178,7 +178,7 @@
 </style>
 </head>
 <body>
-<h1>Changemkaer thing</h1>
+<h1>Fun studying</h1>
 
 <div class="main">
   <div class="col">
@@ -781,7 +781,7 @@ function updateProgress(){
   buyUpgradeBtn.textContent = `Buy (${Math.ceil(50 * Math.pow(1.3, upgradeLevel))} SP)`;
   buyAutoBtn.textContent = `Buy Auto (${Math.ceil(200 * Math.pow(1.22, autoClickers))} SP)`;
 
-  // CPS display
+  //CPS display, not function.
   const cps = getCPS();
   cpsDisplay.textContent = `CPS: ${cps.toFixed(2)}`;
 
@@ -792,7 +792,7 @@ function updateProgress(){
 /* Achievements */
 function checkAchievements(){
   let changed = false;
-  // simple achievements
+  //simple achievements
   if(!achievements['click_100'] && totalClicks >= 100){ achievements['click_100'] = true; spawnFloatText(achEl, 'Achievement: 100 Clicks'); changed = true; }
   if(!achievements['sp_1000'] && totalSP >= 1000){ achievements['sp_1000'] = true; spawnFloatText(achEl, 'Achievement: 1,000 SP'); changed = true; }
   if(!achievements['prestige_1'] && prestige >= 1){ achievements['prestige_1'] = true; spawnFloatText(achEl, 'Achievement: First Prestige'); changed = true; }
@@ -818,7 +818,7 @@ function renderAchievements(){
   }
 }
 
-/* Leaderboard functions */
+//leaderboard needs this
 async function updateLeaderboardEntry(){
   try {
     await setDoc(doc(db, "leaderboard", uid), {
@@ -862,17 +862,17 @@ async function loadLeaderboard(){
   }
 }
 
-/* initial render */
+//remember to do this or something will break
 renderUpgradesUI();
 updateProgress();
 renderBuildingsUI();
 renderAchievements();
 renderUPShop();
 
-// ensure periodic flush as backup
+// flush every once in awhile, fix the infinite people thing
 setInterval(() => { if(uid) flushSave(); }, 60000);
 
-/* scheduleAutosave helper (keeps lastActive updated) */
+//auto save 
 function scheduleAutosave(){
   setInterval(() => {
     if(uid) markDirty();
