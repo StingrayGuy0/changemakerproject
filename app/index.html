@@ -14,9 +14,9 @@
 
     /* ==== Animated Background ==== */
     body {
-        background: linear-gradient(120deg, #0f172a, #1e3a8a, #0ea5e9, #38bdf8);
+        background: linear-gradient(120deg, #0d1a2f, #133a4e, #17657c, #1b8d9b);
         background-size: 400% 400%;
-        animation: gradientShift 18s ease infinite;
+        animation: gradientShift 30s ease infinite;
         font-family: 'Orbitron', sans-serif;
         text-align: center;
         color: aliceblue;
@@ -171,11 +171,51 @@
         backdrop-filter: blur(8px);
         box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         z-index: 50;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, max-height 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
+        max-height: 350px;
+        display: flex;
+        flex-direction: column;
     }
     #leaderboardCard:hover { transform: scale(1.03); }
-    #leaderboardCard h3 { margin: 0 0 0.5rem 0; color: var(--accent2); }
+    #leaderboardCard h3 { margin: 0 0 0.5rem 0; color: var(--accent2); display: inline-block; }
     .leader-item { padding: 0.4rem 0.35rem; border-bottom: 1px dashed rgba(255,255,255,0.03); color: #cfeffd; font-weight:700; }
+    /* Collapsible leaderboard panel */
+    #leaderboardToggleBtn {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.7rem;
+        background: none;
+        color: var(--accent2);
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 0.1rem 0.3rem;
+        z-index: 10;
+        transition: color 0.2s;
+    }
+    #leaderboardToggleBtn:hover {
+        color: var(--accent1);
+    }
+    #leaderboardCard.collapsed {
+        height: 2.5rem;
+        max-height: 2.5rem;
+        min-height: 0;
+        padding-bottom: 0.3rem;
+        overflow: hidden;
+        transition: transform 0.3s, max-height 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
+    }
+    #leaderboardCard.collapsed #leaderboard,
+    #leaderboardCard.collapsed h3 {
+        opacity: 0;
+        pointer-events: none;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        transition: opacity 0.2s;
+    }
+    #leaderboardCard.collapsed #leaderboardToggleBtn {
+        top: 0.2rem;
+    }
 
     /* upgrades container styling */
     .upgrades { display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem; }
@@ -281,6 +321,7 @@
 
 <!-- Leaderboard pinned -->
 <div id="leaderboardCard" aria-live="polite">
+  <button id="leaderboardToggleBtn" aria-label="Collapse leaderboard" title="Collapse leaderboard">−</button>
   <h3>Leaderboard</h3>
   <div id="leaderboard"></div>
 </div>
@@ -912,6 +953,25 @@ function scheduleAutosave(){
   }, 30000);
 }
 
+</script>
+<script>
+// Collapsible leaderboard panel
+const leaderboardCard = document.getElementById('leaderboardCard');
+const leaderboardToggleBtn = document.getElementById('leaderboardToggleBtn');
+if (leaderboardToggleBtn && leaderboardCard) {
+  leaderboardToggleBtn.addEventListener('click', () => {
+    leaderboardCard.classList.toggle('collapsed');
+    if(leaderboardCard.classList.contains('collapsed')) {
+      leaderboardToggleBtn.innerHTML = '+';
+      leaderboardToggleBtn.setAttribute('aria-label', 'Expand leaderboard');
+      leaderboardToggleBtn.setAttribute('title', 'Expand leaderboard');
+    } else {
+      leaderboardToggleBtn.innerHTML = '−';
+      leaderboardToggleBtn.setAttribute('aria-label', 'Collapse leaderboard');
+      leaderboardToggleBtn.setAttribute('title', 'Collapse leaderboard');
+    }
+  });
+}
 </script>
 </body>
 </html>
