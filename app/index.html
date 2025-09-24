@@ -271,7 +271,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import {
   getFirestore, collection, query, where, getDocs, updateDoc,
-  doc, setDoc, getDoc, orderBy, limit, arrayUnion, increment, serverTimestamp
+  doc, setDoc, getDoc, orderBy, limit, arrayUnion, arrayRemove, increment, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -437,7 +437,7 @@ async function loadTasks(){
     const right = document.createElement("div");
     const btn = document.createElement("button");
     btn.textContent = task.completedBy.includes(uid) ? "✅" : "Complete";
-    btn.onclick = () => completeTask(id, task, taskEl);
+    btn.onclick = () => toggleTask(id, task, taskEl);
     right.appendChild(btn);
 
     taskEl.appendChild(left);
@@ -490,6 +490,46 @@ async function completeTask(taskId, task, taskEl){
   await loadTasks();
   await updateLeaderboardEntry();
   checkAchievements();
+}
+
+// Toggle complete/incomplete state for a task for this user
+async function toggleTask(taskId, task, taskEl){
+  // If already completed, un-complete
+  if (Array.isArray(task.completedBy) && task.completedBy.includes(uid)) {
+    // Remove uid from completedBy
+    try {
+      await updateDoc(doc(db, "tasks", taskId), { completedBy: arrayRemove(uid) });
+    } catch(e){ console.error('task update failed', e); }
+
+    // Calculate rewardUP as in completeTask
+    const baseDifficulty = typeof task.xp === "number" ? task.xp : Number(task.xp) || 0;
+    let rewardUP = clamp(Math.ceil(baseDifficulty / 30), 1, 5);
+    rewardUP = Math.ceil(rewardUP * (1 + Math.min(streak, 10) * 0.03));
+
+    // Remove streak only if this is the most recent completion (optional, but for simplicity just decrement streak if > 0)
+    streak = Math.max(0, streak - 1);
+    // Remove upgradePoints (not below 0)
+    upgradePoints = Math.max(0, upgradePoints - rewardUP);
+    // Persist changes
+    try {
+      await updateDoc(doc(db, "users", uid), {
+        streak,
+        // Don't update lastCompleted here, as removing a completion doesn't change lastCompleted date
+        upgradePoints: Math.max(0, upgradePoints),
+        // Don't increment totalClicks here
+      });
+    } catch(e){ console.error('user update error', e); }
+
+    // visual float on task
+    spawnFloatText(taskEl, `-${rewardUP} UP`, 'var(--up-color)');
+    updateProgress();
+    await loadTasks();
+    await updateLeaderboardEntry();
+    checkAchievements();
+  } else {
+    // Not completed, so complete as normal
+    await completeTask(taskId, task, taskEl);
+  }
 }
 
 /* Orb clicking behavior with improved critical system and rebalanced gain */
