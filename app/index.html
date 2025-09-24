@@ -452,7 +452,7 @@ async function loadTasks(){
   });
 }
 
-/* Complete a task => give Upgrade Points (UP) instead of SP */
+/* Complete a task => give Upgrade Points (UP) with improved balancing */
 async function completeTask(taskId, task, taskEl){
   // use arrayUnion to avoid race conditions
   try {
@@ -470,10 +470,9 @@ async function completeTask(taskId, task, taskEl){
 
   // compute UP reward based on task difficulty (task.xp holds a difficulty number used previously)
   const baseDifficulty = typeof task.xp === "number" ? task.xp : Number(task.xp) || 0;
-  // map difficulty to UP: small tasks -> 1 UP, harder tasks scale higher, capped
-  let rewardUP = Math.ceil(baseDifficulty / 30); // e.g., 30 sp difficulty -> 1 UP
-  rewardUP = clamp(rewardUP, 1, 5);
-  // apply small bonus per consecutive streak (encourage daily study)
+  // Improved balancing: rewardUP = clamp(Math.ceil(baseDifficulty/30),1,5)
+  let rewardUP = clamp(Math.ceil(baseDifficulty / 30), 1, 5);
+  // apply streak bonus: +3% per streak day, up to 10 days
   rewardUP = Math.ceil(rewardUP * (1 + Math.min(streak, 10) * 0.03));
 
   upgradePoints += rewardUP;
@@ -493,18 +492,22 @@ async function completeTask(taskId, task, taskEl){
   checkAchievements();
 }
 
-/* Orb clicking behavior with critical/golden chance */
+/* Orb clicking behavior with improved critical system and rebalanced gain */
 orbEl.addEventListener("click", async () => {
-  // golden orb chance influenced by meta upgrades
+  // golden orb chance influenced by meta upgrades, capped at 50%
   const baseCrit = 0.03;
-  const critBonus = metaUpgrades.critChance || 0; // purchased with UP
+  const critBonus = (metaUpgrades.critChance || 0) * 0.03;
+  let critChance = baseCrit + critBonus;
+  critChance = Math.min(critChance, 0.5); // never reaches 100%
   const critRoll = Math.random();
-  const isGolden = critRoll < (baseCrit + critBonus);
+  const isGolden = critRoll < critChance;
   const critMult = isGolden ? 5 : 1;
 
   // click power affected by meta upgrade 'clickPower' which multiplies spPerClick
   const clickPowerMult = metaUpgrades.clickPower ? (1 + 0.5 * metaUpgrades.clickPower) : 1;
-  const gain = Math.round(spPerClick * multiplier * clickPowerMult * (1 + Math.min(streak,10) * 0.01) * critMult);
+  // streak bonus: +1% per day, up to 10%
+  const streakBonus = 1 + Math.min(streak, 10) * 0.01;
+  const gain = Math.round(spPerClick * multiplier * clickPowerMult * streakBonus * critMult);
 
   studyPoints += gain;
   totalSP += gain;
@@ -531,14 +534,15 @@ orbEl.addEventListener("click", async () => {
   checkAchievements();
 });
 
-/* Buy click upgrade (SP economy) */
+/* Buy click upgrade (SP economy, stronger scaling and rebalanced SP gain) */
 buyUpgradeBtn.addEventListener("click", async () => {
-  const cost = 50 * Math.pow(1.3, upgradeLevel); // stronger scaling
+  const cost = 50 * Math.pow(1.45, upgradeLevel); // even stronger scaling
   const c = Math.ceil(cost);
   if(studyPoints >= c){
     studyPoints -= c;
     upgradeLevel += 1;
-    spPerClick += Math.ceil(1 + upgradeLevel * 0.5);
+    // SP per click gain is less snowbally
+    spPerClick += Math.max(1, Math.floor(1 + upgradeLevel * 0.35));
     xp = Math.floor(studyPoints / 10);
     level = Math.floor(xp / xpPerLevel) + 1;
     markDirty();
@@ -786,8 +790,8 @@ function updateProgress(){
     badgesEl.appendChild(p);
   }
 
-  // update action buttons labels
-  buyUpgradeBtn.textContent = `Buy (${Math.ceil(50 * Math.pow(1.3, upgradeLevel))} SP)`;
+  // update action buttons labels with new scaling
+  buyUpgradeBtn.textContent = `Buy (${Math.ceil(50 * Math.pow(1.45, upgradeLevel))} SP)`;
   buyAutoBtn.textContent = `Buy Auto (${Math.ceil(200 * Math.pow(1.22, autoClickers))} SP)`;
 
   //CPS display
