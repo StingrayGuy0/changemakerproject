@@ -522,6 +522,10 @@ async function loadTasks(){
 
 /* Complete a task => give Upgrade Points (UP) with improved balancing */
 async function completeTask(taskId, task, taskEl){
+  // Guard clause: prevent double-completion for this user
+  if (task.completedBy && task.completedBy.includes(uid)) {
+    return; // already completed by this user, no extra UP
+  }
   // use arrayUnion to avoid race conditions
   try {
     await updateDoc(doc(db, "tasks", taskId), { completedBy: arrayUnion(uid) });
