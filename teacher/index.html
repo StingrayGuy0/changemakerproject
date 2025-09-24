@@ -103,7 +103,7 @@
 </style>
 </head>
 <body>
-<h1>Teacher Dashboard</h1>
+<h1>✨ Teacher Dashboard</h1>
 
 <!-- Task Creation Card -->
 <div class="card">
@@ -128,7 +128,6 @@
     <button id="toggleViewTasks" class="collapse-toggle">−</button>
   </h2>
   <div id="viewTasksBody" style="display:block;">
-    <button onclick="loadTasks()">🔄 Refresh Tasks</button>
     <div id="taskList" class="task-list"></div>
   </div>
 </div>
@@ -136,7 +135,9 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+import { 
+  getFirestore, collection, getDocs, addDoc, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOAHU1cXBuW3PgyXtdLWGkZ2ayAKfCYBc",
@@ -152,35 +153,49 @@ const statusEl = document.getElementById("status");
 const studentSelect = document.getElementById("studentSelect");
 const taskListEl = document.getElementById("taskList");
 
-// Redirect if not logged in
-onAuthStateChanged(auth, (user) => {
-  if (!user) window.location.href = "login.html";
+// Wait for auth
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+  // load students only after auth
+  await loadStudents();
+  subscribeTasks();
 });
 
-// Load students
+// Load students from Firestore
 async function loadStudents() {
-  const snap = await getDocs(collection(db, "users"));
-  studentSelect.innerHTML = ""; 
-  snap.forEach(docSnap => {
-    const data = docSnap.data();
-    if (data.role === "student") {
-      const option = document.createElement("option");
-      option.value = docSnap.id;
-      option.textContent = data.email || docSnap.id;
-      studentSelect.appendChild(option);
+  studentSelect.innerHTML = "<option disabled>Loading students...</option>";
+  try {
+    const snap = await getDocs(collection(db, "users"));
+    studentSelect.innerHTML = "";
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.role === "student") {
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = data.email || docSnap.id;
+        studentSelect.appendChild(option);
+      }
+    });
+    if (studentSelect.options.length === 0) {
+      studentSelect.innerHTML = "<option disabled>No students found</option>";
     }
-  });
+  } catch (err) {
+    statusEl.textContent = "❌ Error loading students: " + err.message;
+  }
 }
 
 // Create task
 async function createTask() {
   const title = document.getElementById("taskTitle").value.trim();
-  const up = parseInt(document.getElementById("taskUP").value);
+  const up = Number(document.getElementById("taskUP").value);
   const selectedOptions = Array.from(studentSelect.selectedOptions);
   const studentUIDs = selectedOptions.map(opt => opt.value);
 
-  if (!title || !up || studentUIDs.length === 0) {
-    statusEl.textContent = "⚠️ Please fill all fields and select at least one student.";
+  if (!title || isNaN(up) || up <= 0 || studentUIDs.length === 0) {
+    statusEl.textContent = "⚠️ Please fill all fields, enter a positive UP, and select at least one student.";
     return;
   }
 
@@ -200,17 +215,16 @@ async function createTask() {
   }
 }
 
-// Load tasks
-async function loadTasks() {
-  taskListEl.innerHTML = "<p>Loading tasks...</p>";
-  try {
-    const snap = await getDocs(collection(db, "tasks"));
-    if (snap.empty) {
+// Real-time tasks
+function subscribeTasks() {
+  const tasksRef = collection(db, "tasks");
+  onSnapshot(tasksRef, (snapshot) => {
+    taskListEl.innerHTML = "";
+    if (snapshot.empty) {
       taskListEl.innerHTML = "<p>No tasks created yet.</p>";
       return;
     }
-    taskListEl.innerHTML = "";
-    snap.forEach(docSnap => {
+    snapshot.forEach(docSnap => {
       const task = docSnap.data();
       const item = document.createElement("div");
       item.classList.add("task-item");
@@ -220,15 +234,12 @@ async function loadTasks() {
       `;
       taskListEl.appendChild(item);
     });
-  } catch (err) {
+  }, (err) => {
     taskListEl.innerHTML = "<p>Error loading tasks: " + err.message + "</p>";
-  }
+  });
 }
 
 window.createTask = createTask;
-window.loadTasks = loadTasks;
-
-loadStudents();
 
 // Collapsibles
 function setupCollapsible(toggleId, bodyId) {
