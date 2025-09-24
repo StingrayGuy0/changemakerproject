@@ -707,13 +707,13 @@ function getCPS(){
   const globalMultiplier = 1 + (metaUpgrades.buildBoost || 0) * 0.25;
   cps = cps * globalMultiplier;
 
-  // some upgrades may increase click power
+  // click power upgrades
   if(metaUpgrades.global_cps) cps *= 1 + metaUpgrades.global_cps*0.15;
 
   return cps * multiplier;
 }
 
-/* Building + auto-income loop (every 1s) */
+//building autosave thing
 setInterval(async () => {
   if(!uid) return;
   const cps = getCPS();
