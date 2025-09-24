@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cahngeemakerr project</title>
+<title>Changemaker project</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     :root {
@@ -242,6 +242,11 @@
         </div>
 
         <div style="margin-top:0.6rem;" class="muted">Auto-Clickers and SP upgrades persist to your account. UP upgrades are permanent across prestiges.</div>
+
+        <!-- ADDED: Prestige button (was missing) -->
+        <div style="margin-top:0.8rem; display:flex; justify-content:center;">
+          <button id="btnPrestige">Prestige</button>
+        </div>
     </div>
   </div>
 </div>
@@ -261,7 +266,7 @@
 </div>
 
 <script type="module">
-/* Firebase + Upgrade-Points game logic integrated */
+/* Firebase + Upgrade-Points game logic integrated (fixed CPS + prestige button + global_cps shop item) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import {
@@ -299,6 +304,7 @@ const achEl = document.getElementById("achievements");
 const statsEl = document.getElementById("stats");
 const cpsDisplay = document.getElementById("cpsDisplay");
 const upShopEl = document.getElementById("upShop");
+const prestigeBtn = document.getElementById('btnPrestige');
 
 /* State */
 let uid;
@@ -569,6 +575,7 @@ const UP_SHOP = [
   { id: 'autoPower', name: 'Auto Efficiency', desc: 'Auto-clickers produce 2× more (stackable)', baseCost: 2 },
   { id: 'buildBoost', name: 'Building Boost', desc: 'Buildings produce +25% per purchase', baseCost: 2 },
   { id: 'critChance', name: 'Critical Chance', desc: 'Increase golden orb chance by +3%', baseCost: 1 },
+  { id: 'global_cps', name: 'Global CPS Boost', desc: 'Increase global CPS by +15% per purchase', baseCost: 3 },
   { id: 'prestigeBoost', name: 'Prestige Boost', desc: 'Permanent prestige multiplier +0.1', baseCost: 5 }
 ];
 
@@ -640,9 +647,7 @@ async function doPrestige(){
   checkAchievements();
 }
 
-// wire prestige button to doPrestige
-const prestigeBtn = document.getElementById('btnPrestige');
-prestigeBtn.addEventListener('click', doPrestige);
+if(prestigeBtn) prestigeBtn.addEventListener('click', doPrestige);
 
 /* render upgrades UI (status display) */
 function renderUpgradesUI(){
@@ -694,33 +699,37 @@ function renderBuildingsUI(){
 /* compute CPS from buildings + autoClickers */
 function getCPS(){
   let cps = 0;
+  // buildings contribution
   for(const b of buildingTypes){
     const count = buildings[b.id] || 0;
     const base = b.baseCps * count;
     cps += base;
   }
-  // autoClickers yield spPerClick every 5s -> CPS contribution
+  // autoClickers yield spPerClick every 5s -> CPS contribution (per-second)
   const autoPowerMultiplier = metaUpgrades.autoPower ? (1 + 0.5*metaUpgrades.autoPower) : 1;
-  cps += (autoClickers * (spPerClick * autoPowerMultiplier) * multiplier) / 5;
+  cps += (autoClickers * (spPerClick * autoPowerMultiplier)) / 5;
 
-  // global building multiplier from prestige and meta upgrades
+  // global building multiplier from meta upgrades
   const globalMultiplier = 1 + (metaUpgrades.buildBoost || 0) * 0.25;
   cps = cps * globalMultiplier;
 
-  // click power upgrades
+  // optional global CPS upgrades
   if(metaUpgrades.global_cps) cps *= 1 + metaUpgrades.global_cps*0.15;
 
-  return cps * multiplier;
+  // apply prestige multiplier once (do not double-apply)
+  cps = cps * multiplier;
+
+  return cps;
 }
 
 //building autosave thing
 setInterval(async () => {
   if(!uid) return;
   const cps = getCPS();
-  const gain = Math.round(cps);
-  if(gain > 0){
-    studyPoints += gain;
-    totalSP += gain;
+  if(cps > 0){
+    // add fractional CPS (avoids losing small builds under 1 cps)
+    studyPoints += cps;
+    totalSP += cps;
     xp = Math.floor(studyPoints / 10);
     level = Math.floor(xp / xpPerLevel) + 1;
     markDirty();
@@ -744,7 +753,7 @@ async function flushSave(){
   pendingSave = false;
   try {
     await updateDoc(doc(db, 'users', uid), {
-      studyPoints, xp, level, spPerClick, upgradeLevel, autoClickers, multiplier, prestige, buildings, upgrades, totalClicks, totalSP, lastActive: serverTimestamp(), achievements, upgradePoints, metaUpgrades
+      studyPoints: Math.floor(studyPoints), xp, level, spPerClick, upgradeLevel, autoClickers, multiplier, prestige, buildings, upgrades, totalClicks, totalSP: Math.floor(totalSP), lastActive: serverTimestamp(), achievements, upgradePoints, metaUpgrades
     });
     await updateLeaderboardEntry();
   } catch(e){ console.error('flush save failed', e); }
@@ -755,7 +764,7 @@ function updateProgress(){
   xpEl.textContent = `XP: ${xp}`;
   levelEl.textContent = `Level: ${level}`;
   streakEl.textContent = `Streak: ${streak}`;
-  studyPointsEl.textContent = `Study Points: ${studyPoints}`;
+  studyPointsEl.textContent = `Study Points: ${Math.floor(studyPoints)}`;
   upCountEl.textContent = `${upgradePoints}`;
   const pct = ((xp % xpPerLevel) / xpPerLevel) * 100;
   progressEl.style.width = `${clamp(pct,0,100)}%`;
@@ -781,12 +790,12 @@ function updateProgress(){
   buyUpgradeBtn.textContent = `Buy (${Math.ceil(50 * Math.pow(1.3, upgradeLevel))} SP)`;
   buyAutoBtn.textContent = `Buy Auto (${Math.ceil(200 * Math.pow(1.22, autoClickers))} SP)`;
 
-  //CPS display, not function.
+  //CPS display
   const cps = getCPS();
   cpsDisplay.textContent = `CPS: ${cps.toFixed(2)}`;
 
   // stats
-  statsEl.textContent = `Total clicks: ${totalClicks} • Total SP: ${totalSP} • Prestiges: ${totalPrestiges}`;
+  statsEl.textContent = `Total clicks: ${totalClicks} • Total SP: ${Math.floor(totalSP)} • Prestiges: ${totalPrestiges}`;
 }
 
 /* Achievements */
@@ -823,7 +832,7 @@ async function updateLeaderboardEntry(){
   try {
     await setDoc(doc(db, "leaderboard", uid), {
       uid,
-      studyPoints,
+      studyPoints: Math.floor(studyPoints),
       xp,
       level,
       upgradePoints,
