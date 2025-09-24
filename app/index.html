@@ -601,7 +601,7 @@ function renderUPShop(){
       if(upgradePoints >= cost){
         upgradePoints -= cost;
         metaUpgrades[item.id] = (metaUpgrades[item.id]||0) + 1;
-        // apply immediate effect for some
+        // apply immediate effect for everything that isnt prestige
         if(item.id === 'prestigeBoost'){
           multiplier += 0.1; // small permanent boost
         }
