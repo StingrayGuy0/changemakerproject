@@ -204,12 +204,19 @@
         overflow: hidden;
         transition: transform 0.3s, max-height 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
     }
-    #leaderboardCard.collapsed #leaderboard,
-    #leaderboardCard.collapsed h3 {
+    #leaderboardCard.collapsed #leaderboard {
         opacity: 0;
         pointer-events: none;
         height: 0;
         margin: 0;
+        padding: 0;
+        transition: opacity 0.2s;
+    }
+    #leaderboardCard.collapsed h3 {
+        opacity: 1;
+        pointer-events: auto;
+        height: auto;
+        margin: 0 0 0.5rem 0;
         padding: 0;
         transition: opacity 0.2s;
     }
@@ -911,26 +918,31 @@ async function updateLeaderboardEntry(){
 
 async function loadLeaderboard(){
   try {
-    leaderboardEl.innerHTML = "";
+    // Build new leaderboard HTML in a temporary container
+    const tempContainer = document.createElement('div');
     const q = query(collection(db, "leaderboard"), orderBy("studyPoints", "desc"), limit(10));
     const snap = await getDocs(q);
     if(snap.empty){
-      leaderboardEl.textContent = "No data yet";
-      return;
+      tempContainer.textContent = "No data yet";
+    } else {
+      let place = 1;
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const displayName = data.displayName || "Anonymous";
+        const sp = typeof data.studyPoints === "number" ? data.studyPoints : 0;
+        const lvl = typeof data.level === "number" ? data.level : 1;
+        const up = typeof data.upgradePoints === "number" ? data.upgradePoints : 0;
+        const div = document.createElement("div");
+        div.className = "leader-item";
+        div.textContent = `#${place} ${displayName} — ${sp} SP (Lv ${lvl}) • ${up} UP`;
+        tempContainer.appendChild(div);
+        place++;
+      });
     }
-    let place = 1;
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      const displayName = data.displayName || "Anonymous";
-      const sp = typeof data.studyPoints === "number" ? data.studyPoints : 0;
-      const lvl = typeof data.level === "number" ? data.level : 1;
-      const up = typeof data.upgradePoints === "number" ? data.upgradePoints : 0;
-      const div = document.createElement("div");
-      div.className = "leader-item";
-      div.textContent = `#${place} ${displayName} — ${sp} SP (Lv ${lvl}) • ${up} UP`;
-      leaderboardEl.appendChild(div);
-      place++;
-    });
+    // Only update DOM if changed to prevent flashing
+    if (leaderboardEl.innerHTML !== tempContainer.innerHTML) {
+      leaderboardEl.innerHTML = tempContainer.innerHTML;
+    }
   } catch(e){
     console.error("Could not load leaderboard", e);
   }
