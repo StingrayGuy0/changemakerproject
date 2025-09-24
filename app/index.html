@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Changemaker project</title>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     :root {
@@ -241,8 +242,37 @@
     @media (max-width: 900px) {
       .main { grid-template-columns: 1fr; }
       #leaderboardCard { position: static; width: auto; max-height: none; margin-top: 1rem; }
+
+  #particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: -1; 
+    top: 0;
+    left: 0;
+  }
     }
 </style>
+<script>
+  /* particles.js initialization */
+particlesJS("particles-js", {
+  "particles": {
+    "number": { "value": 60, "density": { "enable": true, "value_area": 800 } },
+    "color": { "value": "#38bdf8" },
+    "shape": { "type": "circle" },
+    "opacity": { "value": 0.3, "random": true },
+    "size": { "value": 3, "random": true },
+    "line_linked": { "enable": true, "distance": 150, "color": "#0ea5e9", "opacity": 0.2, "width": 1 },
+    "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "straight": false, "out_mode": "out" }
+  },
+  "interactivity": {
+    "detect_on": "canvas",
+    "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+    "modes": { "repulse": { "distance": 100 }, "push": { "particles_nb": 4 } }
+  },
+  "retina_detect": true
+});
+</script>
 </head>
 <body>
 <h1>Fun studying</h1>
@@ -990,4 +1020,5 @@ if (leaderboardToggleBtn && leaderboardCard) {
 }
 </script>
 </body>
+<div id="particles-js"></div>
 </html>
