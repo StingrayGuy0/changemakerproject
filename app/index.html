@@ -893,7 +893,7 @@ async function updatingleaderboardpain(){
 
 async function loadLeaderboard(){
   try {
-    // Build new leaderboard HTML in a temporary container
+    //All of this just to stop leaderboard from flashing
     const tempContainer = document.createElement('div');
     const q = query(collection(db, "leaderboard"), orderBy("studyPoints", "desc"), limit(10));
     const snap = await getDocs(q);
@@ -914,7 +914,6 @@ async function loadLeaderboard(){
         place++;
       });
     }
-    // Only update DOM if changed to prevent flashing
     if (leaderboardEl.innerHTML !== tempContainer.innerHTML) {
       leaderboardEl.innerHTML = tempContainer.innerHTML;
     }
@@ -939,10 +938,6 @@ function scheduleAutosave(){
     if(uid) markDirty();
   }, 30000);
 }
-
-</script>
-<script>
-// Collapsible leaderboard panel
 const leaderboardCard = document.getElementById('leaderboardCard');
 const leaderboardToggleBtn = document.getElementById('leaderboardToggleBtn');
 if (leaderboardToggleBtn && leaderboardCard) {
