@@ -11,11 +11,13 @@
         --accent2: #0ea5e9;
         --bg: #0f172a;
         --up-color: #c084fc;
+        scrollbar-width: none;
     }
 
     
     body {
         background: linear-gradient(120deg, #001048, #04224d);
+        background-color: linear-gradient(120deg, #001048, #04224d);
         background-size: 400% 400%;
         animation: gradientShift 30s ease infinite;
         font-family: 'Orbitron', sans-serif;
@@ -24,6 +26,7 @@
         margin: 0;
         padding: 2rem;
         min-height: 100vh;
+        scrollbar-width: none;
     }
 
     @keyframes gradientShift {
@@ -42,6 +45,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
       align-items: start;
+      scrollbar-width: none;
     }
 
     .col {

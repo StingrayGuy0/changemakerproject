@@ -215,7 +215,6 @@ async function createTask() {
   }
 }
 
-// Real-time tasks
 function subscribeTasks() {
   const tasksRef = collection(db, "tasks");
   onSnapshot(tasksRef, (snapshot) => {
@@ -241,7 +240,7 @@ function subscribeTasks() {
 
 window.createTask = createTask;
 
-// Collapsibles
+
 function setupCollapsible(toggleId, bodyId) {
   const toggleBtn = document.getElementById(toggleId);
   const body = document.getElementById(bodyId);
