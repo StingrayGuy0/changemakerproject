@@ -183,7 +183,7 @@ async function loadStudents() {
       studentSelect.innerHTML = "<option disabled>No students found</option>";
     }
   } catch (err) {
-    statusEl.textContent = "❌ Error loading students: " + err.message;
+    statusEl.textContent = " Error loading students: " + err.message;
   }
 }
 
@@ -195,7 +195,7 @@ async function createTask() {
   const studentUIDs = selectedOptions.map(opt => opt.value);
 
   if (!title || isNaN(up) || up <= 0 || studentUIDs.length === 0) {
-    statusEl.textContent = "⚠️ Please fill all fields, enter a positive UP, and select at least one student.";
+    statusEl.textContent = "Please fill all fields, enter a positive UP, and select at least one student.";
     return;
   }
 
@@ -206,12 +206,12 @@ async function createTask() {
       assignedTo: studentUIDs, 
       completedBy: []
     });
-    statusEl.textContent = `✅ Task "${title}" assigned to ${studentUIDs.length} student(s)!`;
+    statusEl.textContent = `Task "${title}" assigned to ${studentUIDs.length} student(s)!`;
     document.getElementById("taskTitle").value = "";
     document.getElementById("taskUP").value = "";
     studentSelect.selectedIndex = -1;
   } catch (err) {
-    statusEl.textContent = "❌ Error creating task: " + err.message;
+    statusEl.textContent = "Error creating task: " + err.message;
   }
 }
 
