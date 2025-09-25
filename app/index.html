@@ -13,9 +13,9 @@
         --up-color: #c084fc;
     }
 
-    /* ==== Animated Background ==== */
+    
     body {
-        background: linear-gradient(120deg, #001048, #092853, #032a61, #16335c);
+        background: linear-gradient(120deg, #001048, #04224d);
         background-size: 400% 400%;
         animation: gradientShift 30s ease infinite;
         font-family: 'Orbitron', sans-serif;
@@ -34,7 +34,7 @@
 
     h1 { color: var(--accent1); text-shadow: 0 0 20px var(--accent1), 0 0 40px var(--accent2); margin-bottom: 1rem; }
 
-    /* Layout */
+    /* everything is here */
     .main {
       max-width: 1100px;
       margin: 0 auto;
@@ -64,7 +64,7 @@
     .card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(56,189,248,0.7); }
 
     .task {
-        position: relative; /* for float text */
+        position: relative; /* float text */
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -103,7 +103,7 @@
 
     .up-pip { color: var(--up-color); font-weight:900; }
 
-    /* orb */
+    /* orb o' knowlage*/
     #orb {
         width: 120px;
         height: 120px;
@@ -139,7 +139,7 @@
         50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.9), 0 0 90px rgba(14, 165, 233, 0.7); }
     }
 
-    /* float text animation (SP pop) */
+    /* animation :O */
     .float-text {
         position: absolute;
         left: 50%;
@@ -157,7 +157,7 @@
         100% { opacity: 0; transform: translate(-50%, -48px) scale(1.3); }
     }
 
-    /* Leaderboard fixed panel */
+    /* leaderboard old*/
     #leaderboardCard {
         position: fixed;
         top: 2rem;
@@ -180,7 +180,7 @@
     #leaderboardCard:hover { transform: scale(1.03); }
     #leaderboardCard h3 { margin: 0 0 0.5rem 0; color: var(--accent2); display: inline-block; }
     .leader-item { padding: 0.4rem 0.35rem; border-bottom: 1px dashed rgba(255,255,255,0.03); color: #cfeffd; font-weight:700; }
-    /* Collapsible leaderboard panel */
+    /* collapssable */
     #leaderboardToggleBtn {
         position: absolute;
         top: 0.6rem;
@@ -246,7 +246,7 @@
 </style>
 </head>
 <body>
-<h1>Fun studying</h1>
+<h1>figure out name of product later</h1>
 
 <div class="main">
   <div class="col">
@@ -278,13 +278,12 @@
         <h2 class="section-title">Orb of knowlage</h2>
         <div id="orb" title="Click to gain Study Points"> </div>
         <div class="upgrades" id="upgrades">
-          <!-- upgrade controls inserted here -->
+        
         </div>
 
         <h3 style="margin-top:0.5rem; color:var(--accent2);">Buildings</h3>
         <div class="buildings" id="buildings"></div>
     </div>
-
     <div class="card">
         <h2 class="section-title">Actions / Shop (Spend UP)</h2>
         <div class="upgrade-row">
@@ -306,12 +305,10 @@
         <div style="margin-top:0.6rem;" class="muted">Assignments give <strong>Upgrade Points (UP)</strong> — spend UP below on permanent meta upgrades.</div>
 
         <div class="shop" id="upShop">
-          <!-- UP shop items inserted here -->
+          <!-- upgrade point things -->
         </div>
 
         <div style="margin-top:0.6rem;" class="muted">Auto-Clickers and SP upgrades persist to your account. UP upgrades are permanent across prestiges.</div>
-
-        <!-- ADDED: Prestige button (was missing) -->
         <div style="margin-top:0.8rem; display:flex; justify-content:center;">
           <button id="btnPrestige">Prestige</button>
         </div>
@@ -319,7 +316,7 @@
   </div>
 </div>
 
-<!-- Achievements and Stats -->
+<!-- ach and st -->
 <div class="card" style="margin-top:1rem; max-width:1100px; margin-left:auto; margin-right:auto;">
   <h2 class="section-title">Achievements & Stats</h2>
   <div id="achievements"></div>
@@ -327,7 +324,6 @@
   <div id="stats" class="muted"></div>
 </div>
 
-<!-- Leaderboard pinned -->
 <div id="leaderboardCard" aria-live="polite">
   <button id="leaderboardToggleBtn" aria-label="Collapse leaderboard" title="Collapse leaderboard">−</button>
   <h3>Leaderboard</h3>
@@ -335,7 +331,7 @@
 </div>
 
 <script type="module">
-/* Firebase + Upgrade-Points game logic integrated (fixed CPS + prestige button + global_cps shop item) */
+/* Firebase*/
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import {
@@ -353,7 +349,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* DOM */
+
 const incompleteEl = document.getElementById("incompleteTasks");
 const completedEl = document.getElementById("completedTasks");
 const xpEl = document.getElementById("xp");
@@ -375,7 +371,7 @@ const cpsDisplay = document.getElementById("cpsDisplay");
 const upShopEl = document.getElementById("upShop");
 const prestigeBtn = document.getElementById('btnPrestige');
 
-/* State */
+
 let uid;
 let xp = 0, level = 1, streak = 0;
 let studyPoints = 0, spPerClick = 1, upgradeLevel = 0;
@@ -383,19 +379,19 @@ let autoClickers = 0;
 let multiplier = 1, prestige = 0;
 let lastCompleted = null;
 let lastActive = new Date();
-let upgradePoints = 0; // NEW: Upgrade Points (UP)
-let metaUpgrades = {}; // holds purchases bought with UP (permanent multipliers)
+let upgradePoints = 0; 
+let metaUpgrades = {}; // hold purchases bought with UP
 const xpPerLevel = 100;
 
-// new: buildings & upgrades & stats
+// buildings and upgrade
 const buildingTypes = [
   { id: 'lamp', name: 'Study Lamp', baseCost: 50, baseCps: 0.5 },
   { id: 'group', name: 'Study Group', baseCost: 400, baseCps: 4 },
   { id: 'library', name: 'Library', baseCost: 3000, baseCps: 30 },
   { id: 'research', name: 'Research Hub', baseCost: 20000, baseCps: 150 }
 ];
-let buildings = {}; // id -> count
-let upgrades = {}; // misc upgrades
+let buildings = {}; 
+let upgrades = {}; 
 let totalClicks = 0, totalSP = 0, totalPrestiges = 0;
 let achievements = {};
 
@@ -403,7 +399,7 @@ let achievements = {};
 let pendingSave = false;
 let saveTimer = null;
 
-/* Helpers */
+
 function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 function costFor(base, count){ return Math.ceil(base * Math.pow(1.15, count)); }
 function spawnFloatText(containerEl, text, color = null){
@@ -415,7 +411,7 @@ function spawnFloatText(containerEl, text, color = null){
   setTimeout(()=> floatEl.remove(), 1050);
 }
 
-/* Auth + load user */
+/* user loader, help from friend */
 onAuthStateChanged(auth, async (user) => {
   if(!user){ window.location.href = "/changemakerproject"; return; }
   uid = user.uid;
@@ -442,14 +438,14 @@ onAuthStateChanged(auth, async (user) => {
     totalSP = data.totalSP || 0;
     totalPrestiges = data.totalPrestiges || 0;
     achievements = data.achievements || {};
-    upgradePoints = data.upgradePoints || 0; // load UP
+    upgradePoints = data.upgradePoints || 0; 
     metaUpgrades = data.metaUpgrades || {};
 
-    // offline progress: compute elapsed seconds and grant CPS * elapsed
+    // attempted offline progress (doent work at the moment)
     const now = new Date();
     const elapsed = Math.floor((now - lastActive) / 1000);
     if(elapsed > 5){
-      const offlineGain = Math.round(getCPS() * elapsed * 0.6); // give 60% of potential
+      const offlineGain = Math.round(getCPS() * elapsed * 0.6); 
       if(offlineGain > 0){
         studyPoints += offlineGain;
         totalSP += offlineGain;
@@ -457,7 +453,7 @@ onAuthStateChanged(auth, async (user) => {
       }
     }
   } else {
-    // create initial user doc with fields used by the game
+    // initial user table thing
     buildings = {};
     upgrades = {};
     achievements = {};
@@ -473,8 +469,8 @@ onAuthStateChanged(auth, async (user) => {
   updateProgress();
   await loadTasks();
   await loadLeaderboard();
-  renderUpgradesUI();
-  renderBuildingsUI();
+  renderupgradesthing();
+  renderbuildingsthing();
   renderAchievements();
   renderUPShop();
   scheduleAutosave();
@@ -492,12 +488,12 @@ async function loadTasks(){
     const task = docSnap.data();
     const id = docSnap.id;
 
-    // ensure completedBy exists
+    // does completedBy exists
     task.completedBy = Array.isArray(task.completedBy) ? task.completedBy : [];
 
     const taskEl = document.createElement("div");
     taskEl.className = "task";
-    // keep dataset consistent with css expectations
+    // keep dataset for styling
     taskEl.dataset.status = task.completedBy.includes(uid) ? "completed" : "incomplete";
 
     const left = document.createElement("div");
@@ -521,18 +517,17 @@ async function loadTasks(){
   });
 }
 
-/* Complete a task => give Upgrade Points (UP) with improved balancing */
+/* Complete task give UO */
 async function completeTask(taskId, task, taskEl){
-  // Guard clause: prevent double-completion for this user
+  // saijsdoiajsdnsadiuasghdaldiaSULhdilahs diua usdgailsygfildug fksdgh filausdgfiluashb
   if (task.completedBy && task.completedBy.includes(uid)) {
-    return; // already completed by this user, no extra UP
+    return; // dominik infinite UP thing
   }
-  // use arrayUnion to avoid race conditions
+  // race conditions
   try {
     await updateDoc(doc(db, "tasks", taskId), { completedBy: arrayUnion(uid) });
   } catch(e){ console.error('task update failed', e); }
 
-  // streak logic
   const today = new Date();
   const lastDay = lastCompleted ? new Date(lastCompleted) : null;
   const diffDays = lastDay ? Math.floor((today - lastDay)/86400000) : null;
@@ -541,44 +536,35 @@ async function completeTask(taskId, task, taskEl){
   else if (diffDays > 1) { streak = 1; }
   lastCompleted = today;
 
-  // compute UP reward based on task difficulty (task.xp holds a difficulty number used previously)
   const baseDifficulty = typeof task.xp === "number" ? task.xp : Number(task.xp) || 0;
-  // Improved balancing: rewardUP = clamp(Math.ceil(baseDifficulty/30),1,5)
   let rewardUP = clamp(Math.ceil(baseDifficulty / 30), 1, 5);
-  // apply streak bonus: +3% per streak day, up to 10 days
   rewardUP = Math.ceil(rewardUP * (1 + Math.min(streak, 10) * 0.03));
 
   upgradePoints += rewardUP;
 
-  // persist important fields now
   try {
     await updateDoc(doc(db, "users", uid), {
       streak, lastCompleted: serverTimestamp(), upgradePoints: increment(rewardUP), totalClicks: increment(1)
     });
   } catch(e){ console.error('user update error', e); }
 
-  // visual float on task
   spawnFloatText(taskEl, `+${rewardUP} UP`, 'var(--up-color)');
   updateProgress();
   await loadTasks();
-  await updateLeaderboardEntry();
+  await updatingleaderboardpain();
   checkAchievements();
 }
 
-/* Orb clicking behavior with improved critical system and rebalanced gain */
 orbEl.addEventListener("click", async () => {
-  // golden orb chance influenced by meta upgrades, capped at 50%
   const baseCrit = 0.03;
   const critBonus = (metaUpgrades.critChance || 0) * 0.03;
   let critChance = baseCrit + critBonus;
-  critChance = Math.min(critChance, 0.5); // never reaches 100%
+  critChance = Math.min(critChance, 0.5); // no 100% crit 
   const critRoll = Math.random();
   const isGolden = critRoll < critChance;
   const critMult = isGolden ? 5 : 1;
 
-  // click power affected by meta upgrade 'clickPower' which multiplies spPerClick
   const clickPowerMult = metaUpgrades.clickPower ? (1 + 0.5 * metaUpgrades.clickPower) : 1;
-  // streak bonus: +1% per day, up to 10%
   const streakBonus = 1 + Math.min(streak, 10) * 0.01;
   const gain = Math.round(spPerClick * multiplier * clickPowerMult * streakBonus * critMult);
 
@@ -588,11 +574,11 @@ orbEl.addEventListener("click", async () => {
   xp = Math.floor(studyPoints / 10);
   level = Math.floor(xp / xpPerLevel) + 1;
 
-  // orb click visual
+  // the orb looks cool now
   orbEl.style.transform = "scale(0.93)";
   setTimeout(()=> orbEl.style.transform = "scale(1)", 90);
 
-  // spawn float near orb
+  // spawn float near orb, floating text is cool
   const float = document.createElement("div");
   float.className = "float-text";
   float.style.top = "-12px";
@@ -603,13 +589,12 @@ orbEl.addEventListener("click", async () => {
 
   markDirty();
   updateProgress();
-  await updateLeaderboardEntry();
+  await updatingleaderboardpain();
   checkAchievements();
 });
 
-/* Buy click upgrade (SP economy, stronger scaling and rebalanced SP gain) */
 buyUpgradeBtn.addEventListener("click", async () => {
-  const cost = 50 * Math.pow(1.45, upgradeLevel); // even stronger scaling
+  const cost = 50 * Math.pow(1.45, upgradeLevel); // s c a l i n g
   const c = Math.ceil(cost);
   if(studyPoints >= c){
     studyPoints -= c;
@@ -619,9 +604,9 @@ buyUpgradeBtn.addEventListener("click", async () => {
     xp = Math.floor(studyPoints / 10);
     level = Math.floor(xp / xpPerLevel) + 1;
     markDirty();
-    renderUpgradesUI();
+    renderupgradesthing();
     updateProgress();
-    await updateLeaderboardEntry();
+    await updatingleaderboardpain();
     spawnFloatText(upgradesContainer, `- ${c} SP`);
     checkAchievements();
   } else {
@@ -629,16 +614,15 @@ buyUpgradeBtn.addEventListener("click", async () => {
   }
 });
 
-/* Buy auto-clicker (SP economy) */
 buyAutoBtn.addEventListener("click", async () => {
   const cost = Math.ceil(200 * Math.pow(1.22, autoClickers));
   if(studyPoints >= cost){
     studyPoints -= cost;
     autoClickers += 1;
     markDirty();
-    renderUpgradesUI();
+    renderupgradesthing();
     updateProgress();
-    await updateLeaderboardEntry();
+    await updatingleaderboardpain();
     spawnFloatText(upgradesContainer, `- ${cost} SP`);
     checkAchievements();
   } else {
@@ -646,7 +630,7 @@ buyAutoBtn.addEventListener("click", async () => {
   }
 });
 
-/* UP Shop: spend Upgrade Points on permanent meta upgrades */
+/* UP shop, 3 hours wasted looking for a single forgotten comma*/
 const UP_SHOP = [
   { id: 'clickPower', name: 'Double Click Power', desc: 'Increase click power permanently (stackable)', baseCost: 1 },
   { id: 'autoPower', name: 'Auto Efficiency', desc: 'Auto-clickers produce 2× more (stackable)', baseCost: 2 },
@@ -680,14 +664,14 @@ function renderUPShop(){
         metaUpgrades[item.id] = (metaUpgrades[item.id]||0) + 1;
         // apply immediate effect for everything that isnt prestige
         if(item.id === 'prestigeBoost'){
-          multiplier += 0.1; // small permanent boost
+          multiplier += 0.1; 
         }
         markDirty();
         renderUPShop();
-        renderUpgradesUI();
+        renderupgradesthing();
         updateProgress();
         spawnFloatText(upShopEl, `- ${cost} UP`, 'var(--up-color)');
-        await updateLeaderboardEntry();
+        await updatingleaderboardpain();
       } else {
         btn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 200 });
       }
@@ -706,9 +690,8 @@ async function doPrestige(){
   if(!confirm("Prestiging will reset SP, buildings, and SP-upgrades but UP and UP-upgrades remain permanent. Proceed?")) return;
   prestige += 1;
   totalPrestiges += 1;
-  // grant a prestige reward that is weaker than UP but still meaningful
   multiplier *= 1.5; // prestige multiplier
-  // reset SP-related progression but keep upgradePoints/metaUpgrades
+  // sp stuff gone
   studyPoints = 0;
   xp = 0; level = 1;
   spPerClick = 1; upgradeLevel = 0; autoClickers = 0; buildings = {};
@@ -717,17 +700,16 @@ async function doPrestige(){
     await updateDoc(doc(db, "users", uid), { prestige, multiplier, studyPoints, xp, level, spPerClick, upgradeLevel, autoClickers, buildings, totalPrestiges: increment(1) });
   } catch(e){ console.error('prestige save failed', e); }
 
-  renderUpgradesUI();
-  renderBuildingsUI();
+  renderupgradesthing();
+  renderbuildingsthing();
   updateProgress();
-  await updateLeaderboardEntry();
+  await updatingleaderboardpain();
   checkAchievements();
 }
 
 if(prestigeBtn) prestigeBtn.addEventListener('click', doPrestige);
 
-/* render upgrades UI (status display) */
-function renderUpgradesUI(){
+function renderupgradesthing(){
   upgradesContainer.innerHTML = `
     <div class="muted">SP / click: <strong>${spPerClick}</strong></div>
     <div class="muted">Upgrade level: <strong>${upgradeLevel}</strong></div>
@@ -738,7 +720,7 @@ function renderUpgradesUI(){
 }
 
 /* Buildings UI */
-function renderBuildingsUI(){
+function renderbuildingsthing(){
   buildingsEl.innerHTML = '';
   for(const b of buildingTypes){
     const count = buildings[b.id] || 0;
@@ -760,10 +742,10 @@ function renderBuildingsUI(){
         studyPoints -= cost;
         buildings[b.id] = (buildings[b.id]||0) + 1;
         markDirty();
-        renderBuildingsUI();
+        renderbuildingsthing();
         updateProgress();
         spawnFloatText(buildingsEl, `- ${cost} SP`);
-        await updateLeaderboardEntry();
+        await updatingleaderboardpain();
         checkAchievements();
       } else {
         btn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 200 });
@@ -773,27 +755,20 @@ function renderBuildingsUI(){
   }
 }
 
-/* compute CPS from buildings + autoClickers */
 function getCPS(){
   let cps = 0;
-  // buildings contribution
+  // buildings
   for(const b of buildingTypes){
     const count = buildings[b.id] || 0;
     const base = b.baseCps * count;
     cps += base;
   }
-  // autoClickers yield spPerClick every 5s -> CPS contribution (per-second)
   const autoPowerMultiplier = metaUpgrades.autoPower ? (1 + 0.5*metaUpgrades.autoPower) : 1;
   cps += (autoClickers * (spPerClick * autoPowerMultiplier)) / 5;
-
-  // global building multiplier from meta upgrades
   const globalMultiplier = 1 + (metaUpgrades.buildBoost || 0) * 0.25;
   cps = cps * globalMultiplier;
-
-  // optional global CPS upgrades
   if(metaUpgrades.global_cps) cps *= 1 + metaUpgrades.global_cps*0.15;
 
-  // apply prestige multiplier once (do not double-apply)
   cps = cps * multiplier;
 
   return cps;
@@ -832,7 +807,7 @@ async function flushSave(){
     await updateDoc(doc(db, 'users', uid), {
       studyPoints: Math.floor(studyPoints), xp, level, spPerClick, upgradeLevel, autoClickers, multiplier, prestige, buildings, upgrades, totalClicks, totalSP: Math.floor(totalSP), lastActive: serverTimestamp(), achievements, upgradePoints, metaUpgrades
     });
-    await updateLeaderboardEntry();
+    await updatingleaderboardpain();
   } catch(e){ console.error('flush save failed', e); }
 }
 
@@ -863,22 +838,17 @@ function updateProgress(){
     badgesEl.appendChild(p);
   }
 
-  // update action buttons labels with new scaling
   buyUpgradeBtn.textContent = `Buy (${Math.ceil(50 * Math.pow(1.45, upgradeLevel))} SP)`;
   buyAutoBtn.textContent = `Buy Auto (${Math.ceil(200 * Math.pow(1.22, autoClickers))} SP)`;
-
-  //CPS display
   const cps = getCPS();
   cpsDisplay.textContent = `CPS: ${cps.toFixed(2)}`;
-
-  // stats
   statsEl.textContent = `Total clicks: ${totalClicks} • Total SP: ${Math.floor(totalSP)} • Prestiges: ${totalPrestiges}`;
 }
 
 /* Achievements */
 function checkAchievements(){
   let changed = false;
-  //simple achievements
+  //simple achievements, expand if time 
   if(!achievements['click_100'] && totalClicks >= 100){ achievements['click_100'] = true; spawnFloatText(achEl, 'Achievement: 100 Clicks'); changed = true; }
   if(!achievements['sp_1000'] && totalSP >= 1000){ achievements['sp_1000'] = true; spawnFloatText(achEl, 'Achievement: 1,000 SP'); changed = true; }
   if(!achievements['prestige_1'] && prestige >= 1){ achievements['prestige_1'] = true; spawnFloatText(achEl, 'Achievement: First Prestige'); changed = true; }
@@ -905,7 +875,7 @@ function renderAchievements(){
 }
 
 //leaderboard needs this
-async function updateLeaderboardEntry(){
+async function updatingleaderboardpain(){
   try {
     await setDoc(doc(db, "leaderboard", uid), {
       uid,
@@ -954,9 +924,9 @@ async function loadLeaderboard(){
 }
 
 //remember to do this or something will break
-renderUpgradesUI();
+renderupgradesthing();
 updateProgress();
-renderBuildingsUI();
+renderbuildingsthing();
 renderAchievements();
 renderUPShop();
 
