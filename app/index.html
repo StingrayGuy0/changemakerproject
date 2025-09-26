@@ -528,7 +528,7 @@ async function completeTask(taskId, task, taskEl){
   if (task.completedBy && task.completedBy.includes(uid)) {
     return; // dominik infinite UP thing
   }
-  // race conditions
+  // race conditions?
   try {
     await updateDoc(doc(db, "tasks", taskId), { completedBy: arrayUnion(uid) });
   } catch(e){ console.error('task update failed', e); }
@@ -960,7 +960,7 @@ if (leaderboardToggleBtn && leaderboardCard) {
   });
 }
 //credits:
-//my friend, kie ren, for helping with leaderboard updates and auto save.
+//my friend, kie ren, for helping with leaderboard updates and auto save and some race condition thing.
 // this youtube video https://www.youtube.com/watch?v=W06u8rj1c2s for the CSS effects for the orb
 // dominik for helping with bug tests and feedback
 // firebase docs because firebase is pain
