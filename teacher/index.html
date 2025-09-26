@@ -105,7 +105,7 @@
 <body>
 <h1>✨ Teacher Dashboard</h1>
 
-<!-- Task Creation Card -->
+<!--  creation -->
 <div class="card">
   <h2>
     Create Task
@@ -121,7 +121,7 @@
   </div>
 </div>
 
-<!-- View Tasks Card -->
+<!--view-->
 <div class="card">
   <h2>
     View Tasks
@@ -153,18 +153,16 @@ const statusEl = document.getElementById("status");
 const studentSelect = document.getElementById("studentSelect");
 const taskListEl = document.getElementById("taskList");
 
-// Wait for auth
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
     return;
   }
-  // load students only after auth
   await loadStudents();
   subscribeTasks();
 });
 
-// Load students from Firestore
+// firestore
 async function loadStudents() {
   studentSelect.innerHTML = "<option disabled>Loading students...</option>";
   try {
@@ -187,7 +185,6 @@ async function loadStudents() {
   }
 }
 
-// Create task
 async function createTask() {
   const title = document.getElementById("taskTitle").value.trim();
   const up = Number(document.getElementById("taskUP").value);

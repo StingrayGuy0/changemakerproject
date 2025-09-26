@@ -162,10 +162,6 @@ let teacherSignUp = false;
 const studentCard = document.getElementById("studentCard");
 const teacherCard = document.getElementById("teacherCard");
 //I wanna cry this is taking too long
-//I mean it would be easier if someone just told me what the assignment was earlier
-//but nooooooooo they have to procrastinate
-//im pretty much the only person in the group doing anything
-//imagine being me
 //  cards
 document.getElementById("studentSwitch").onclick = () => {
   studentCard.classList.replace("visible", "hidden");
@@ -195,7 +191,7 @@ studentToggleSignUp.onclick = () => {
   }
 };
 
-// toggle sing up mode T
+// toggle sign up mode T
 const teacherTitle = document.getElementById("teacherTitle");
 const teacherToggleSignUp = document.getElementById("teacherToggleSignUp");
 const teacherBtn = document.getElementById("teacherBtn");
@@ -234,7 +230,7 @@ document.getElementById("studentForm").addEventListener("submit", async e => {
   }
 });
 
-// teacher thing
+// teacher part
 document.getElementById("teacherForm").addEventListener("submit", async e => {
   e.preventDefault();
   const email = document.getElementById("teacherEmail").value;
