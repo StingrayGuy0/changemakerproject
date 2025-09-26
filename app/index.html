@@ -579,11 +579,10 @@ orbEl.addEventListener("click", async () => {
   xp = Math.floor(studyPoints / 10);
   level = Math.floor(xp / xpPerLevel) + 1;
 
-  // the orb looks cool now
   orbEl.style.transform = "scale(0.93)";
   setTimeout(()=> orbEl.style.transform = "scale(1)", 90);
 
-  // spawn float near orb, floating text is cool
+  // make the floating numbers
   const float = document.createElement("div");
   float.className = "float-text";
   float.style.top = "-12px";
