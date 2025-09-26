@@ -577,7 +577,7 @@ orbEl.addEventListener("click", async () => {
   totalSP += gain;
   totalClicks += 1;
   xp = Math.floor(studyPoints / 10);
-  level = Math.floor(xp / xpPerLevel) + 1;
+  level = Math.floor(xp / xpPerLevel) + 100;
 
   orbEl.style.transform = "scale(0.93)";
   setTimeout(()=> orbEl.style.transform = "scale(1)", 90);
