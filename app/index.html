@@ -446,7 +446,7 @@ onAuthStateChanged(auth, async (user) => {
     upgradePoints = data.upgradePoints || 0; 
     metaUpgrades = data.metaUpgrades || {};
 
-    // attempted offline progress (doent work at the moment)
+    // attempted offline progress (doent work at the moment) fix later if extra
     const now = new Date();
     const elapsed = Math.floor((now - lastActive) / 1000);
     if(elapsed > 5){
@@ -687,7 +687,7 @@ function renderUPShop(){
 /* Prestige */
 const MIN_PRESTIGE_LEVEL = 50;
 
-async function doPrestige(){
+async function prestigething(){
   if(level < MIN_PRESTIGE_LEVEL){
     return alert(`Reach level ${MIN_PRESTIGE_LEVEL} to prestige.`);
   }
@@ -711,7 +711,7 @@ async function doPrestige(){
   checkAchievements();
 }
 
-if(prestigeBtn) prestigeBtn.addEventListener('click', doPrestige);
+if(prestigeBtn) prestigeBtn.addEventListener('click', prestigething);
 
 function renderupgradesthing(){
   upgradesContainer.innerHTML = `
@@ -1007,6 +1007,7 @@ function dragElement(elmnt) {
 // firebase docs because firebase is pain
 // chatgpt coding portions of the javascript because I have limited understanding of javascript 
 //parts coded by chatgpt: 689-713, 704-706 and fixing the CPS timer causing performance issues.
+//draggable leaderboard code from w3schools https://www.w3schools.com/howto/howto_js_draggable.asp
 </script>
 </body>
 </html>
